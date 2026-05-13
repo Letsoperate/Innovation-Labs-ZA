@@ -46,6 +46,7 @@ export default function Header() {
             { to: "/discover", label: "Discover" },
             { to: "/leaderboard", label: "Leaderboard" },
             { to: "/categories", label: "Categories" },
+            { to: "/hall-of-fame", label: "Hall of Fame" },
           ].map((item) => (
             <NavLink
               key={item.to}
@@ -156,6 +157,7 @@ export default function Header() {
             { to: "/discover", label: "Discover" },
             { to: "/leaderboard", label: "Leaderboard" },
             { to: "/categories", label: "Categories" },
+            { to: "/hall-of-fame", label: "Hall of Fame" },
           ].map((item) => (
             <NavLink
               key={item.to}

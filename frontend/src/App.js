@@ -9,6 +9,7 @@ import DiscoverPage from "./pages/DiscoverPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import ProjectDetailPage from "./pages/ProjectDetailPage";
+import HallOfFamePage from "./pages/HallOfFamePage";
 import SubmitProjectPage from "./pages/SubmitProjectPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -26,6 +27,7 @@ function App() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/p/:slug" element={<ProjectDetailPage />} />
             <Route path="/u/:username" element={<ProfilePage />} />
+            <Route path="/hall-of-fame" element={<HallOfFamePage />} />
             <Route path="/submit" element={<SubmitProjectPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
