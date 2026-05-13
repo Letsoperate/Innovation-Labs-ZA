@@ -144,15 +144,6 @@ export default function ProjectDetailPage() {
                 <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
               </section>
 
-              {project.cover_image_url && (
-                <section>
-                  <h2 className="font-heading font-bold text-2xl mb-4">Screenshot</h2>
-                  <div className="border border-border overflow-hidden">
-                    <img src={fileUrl(project.cover_image_url)} alt={project.name} className="w-full object-cover max-h-96" />
-                  </div>
-                </section>
-              )}
-
               {project.website_url && (
                 <section>
                   <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">
