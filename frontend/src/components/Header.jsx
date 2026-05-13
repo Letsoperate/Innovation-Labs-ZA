@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "./ui/button";
-import { Lightning, MagnifyingGlass, Plus, SignOut, User, List, X } from "@phosphor-icons/react";
+import { Lightning, MagnifyingGlass, Plus, SignOut, User, List, X, BookmarkSimple, Rocket } from "@phosphor-icons/react";
 import { useState, useEffect } from "react";
 import {
   DropdownMenu,
@@ -69,64 +69,68 @@ export default function Header() {
             size="icon"
             onClick={() => navigate("/discover")}
             data-testid="search-button"
-            className="hidden sm:inline-flex"
+            className="hidden sm:inline-flex rounded-full"
           >
             <MagnifyingGlass size={20} weight="bold" />
           </Button>
 
           {user ? (
-            <>
-              <Button
-                onClick={() => navigate("/submit")}
-                data-testid="submit-project-button"
-                className="hidden sm:inline-flex bg-primary hover:bg-primary/90 text-white rounded-sm gap-1"
-              >
-                <Plus size={16} weight="bold" /> Submit
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button data-testid="user-menu-trigger" className="rounded-full">
-                    <Avatar className="h-9 w-9 ring-1 ring-border">
-                      <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} />
-                      <AvatarFallback className="bg-foreground text-background font-semibold">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button data-testid="user-menu-trigger" className="rounded-full">
+                  <Avatar className="h-9 w-9 ring-1 ring-border rounded-full">
+                    <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} className="rounded-full" />
+                    <AvatarFallback className="bg-foreground text-background font-semibold rounded-full">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                <DropdownMenuLabel>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8 rounded-full">
+                      <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} className="rounded-full" />
+                      <AvatarFallback className="bg-foreground text-background text-xs font-semibold rounded-full">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-sm">
-                  <DropdownMenuLabel>
-                    <div className="font-semibold">{user.name}</div>
-                    <div className="text-xs text-muted-foreground font-normal">@{user.username}</div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate(`/u/${user.username}`)} data-testid="menu-profile">
-                    <User size={16} className="mr-2" /> Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/submit")} data-testid="menu-submit">
-                    <Plus size={16} className="mr-2" /> Submit Project
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={async () => { await logout(); navigate("/"); }} data-testid="menu-logout">
-                    <SignOut size={16} className="mr-2" /> Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
+                    <div>
+                      <div className="font-semibold text-sm">{user.name}</div>
+                      <div className="text-xs text-muted-foreground font-normal">@{user.username}</div>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate(`/u/${user.username}`)} data-testid="menu-profile" className="rounded-lg">
+                  <User size={16} className="mr-2" /> Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate(`/u/${user.username}?tab=bookmarks`)} data-testid="menu-bookmarks" className="rounded-lg">
+                  <BookmarkSimple size={16} className="mr-2" /> Bookmarks
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/submit")} data-testid="menu-submit" className="rounded-lg">
+                  <Rocket size={16} className="mr-2" /> Submit Project
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={async () => { await logout(); navigate("/"); }} data-testid="menu-logout" className="rounded-lg">
+                  <SignOut size={16} className="mr-2" /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <div className="hidden sm:flex items-center gap-2">
               <Button
                 variant="ghost"
                 onClick={() => navigate("/login")}
                 data-testid="login-button"
-                className="rounded-sm"
+                className="rounded-full"
               >
                 Log in
               </Button>
               <Button
                 onClick={() => navigate("/register")}
                 data-testid="register-button"
-                className="bg-primary hover:bg-primary/90 text-white rounded-sm gap-1"
+                className="bg-primary hover:bg-primary/90 text-white rounded-full gap-1"
               >
                 <Lightning size={16} weight="fill" /> Get started
               </Button>
@@ -137,7 +141,7 @@ export default function Header() {
             variant="ghost"
             size="icon"
             onClick={() => setMobileOpen((v) => !v)}
-            className="md:hidden"
+            className="md:hidden rounded-full"
             data-testid="mobile-menu-button"
           >
             {mobileOpen ? <X size={20} /> : <List size={20} />}
@@ -165,12 +169,25 @@ export default function Header() {
               {item.label}
             </NavLink>
           ))}
+          {user && (
+            <>
+              <NavLink to="/submit" onClick={() => setMobileOpen(false)} className="py-2 text-sm font-medium text-primary flex items-center gap-2">
+                <Rocket size={16} weight="fill" /> Submit Project
+              </NavLink>
+              <NavLink to={`/u/${user.username}`} onClick={() => setMobileOpen(false)} className="py-2 text-sm font-medium text-foreground flex items-center gap-2">
+                <User size={16} /> Profile
+              </NavLink>
+              <NavLink to={`/u/${user.username}?tab=bookmarks`} onClick={() => setMobileOpen(false)} className="py-2 text-sm font-medium text-foreground flex items-center gap-2">
+                <BookmarkSimple size={16} /> Bookmarks
+              </NavLink>
+            </>
+          )}
           {!user && (
             <div className="flex gap-2 pt-2 border-t border-border/60">
-              <Button variant="outline" onClick={() => { setMobileOpen(false); navigate("/login"); }} className="flex-1 rounded-sm">
+              <Button variant="outline" onClick={() => { setMobileOpen(false); navigate("/login"); }} className="flex-1 rounded-full">
                 Log in
               </Button>
-              <Button onClick={() => { setMobileOpen(false); navigate("/register"); }} className="flex-1 bg-primary hover:bg-primary/90 rounded-sm">
+              <Button onClick={() => { setMobileOpen(false); navigate("/register"); }} className="flex-1 bg-primary hover:bg-primary/90 rounded-full">
                 Get started
               </Button>
             </div>

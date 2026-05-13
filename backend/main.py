@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS projects (
     upvotes_count INTEGER DEFAULT 0,
     views_count INTEGER DEFAULT 0,
     comments_count INTEGER DEFAULT 0,
+    bookmarks_count INTEGER DEFAULT 0,
     created_at TEXT,
     FOREIGN KEY (maker_id) REFERENCES users(id)
 );
@@ -118,8 +119,18 @@ CREATE TABLE IF NOT EXISTS comments (
     id TEXT PRIMARY KEY,
     project_id TEXT NOT NULL,
     user_id TEXT NOT NULL,
+    parent_id TEXT,
     body TEXT NOT NULL,
+    likes_count INTEGER DEFAULT 0,
     created_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS comment_likes (
+    id TEXT PRIMARY KEY,
+    comment_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    created_at TEXT,
+    UNIQUE(comment_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS files (
@@ -131,6 +142,21 @@ CREATE TABLE IF NOT EXISTS files (
     uploaded_by TEXT NOT NULL,
     is_deleted INTEGER DEFAULT 0,
     created_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS project_views (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    ip_address TEXT NOT NULL,
+    viewed_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bookmarks (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    created_at TEXT,
+    UNIQUE(project_id, user_id)
 );
 """
 
@@ -310,6 +336,7 @@ class ProjectUpdate(BaseModel):
 
 class CommentCreate(BaseModel):
     body: str
+    parent_id: Optional[str] = None
 
 
 # ---------- Auth Endpoints ----------
@@ -378,6 +405,73 @@ async def refresh_token(request: Request, response: Response):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
 
+# ---------- GitHub OAuth ----------
+@api_router.get("/auth/github")
+async def github_login():
+    client_id = os.environ.get("GITHUB_CLIENT_ID", "")
+    redirect_uri = os.environ.get("GITHUB_REDIRECT_URI", "https://innovation-lab-za.vercel.app/_/backend/api/auth/github/callback")
+    return {"url": f"https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=user:email"}
+
+
+@api_router.get("/auth/github/callback")
+async def github_callback(code: str, response: Response):
+    client_id = os.environ.get("GITHUB_CLIENT_ID", "")
+    client_secret = os.environ.get("GITHUB_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
+        raise HTTPException(status_code=500, detail="GitHub OAuth not configured")
+
+    async with httpx.AsyncClient(timeout=15) as client:
+        token_resp = await client.post(
+            "https://github.com/login/oauth/access_token",
+            json={"client_id": client_id, "client_secret": client_secret, "code": code},
+            headers={"Accept": "application/json"},
+        )
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise HTTPException(status_code=400, detail="GitHub auth failed")
+
+        user_resp = await client.get(
+            "https://api.github.com/user",
+            headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+        )
+        gh_user = user_resp.json()
+        gh_email = gh_user.get("email")
+        if not gh_email:
+            email_resp = await client.get(
+                "https://api.github.com/user/emails",
+                headers={"Authorization": f"Bearer {access_token}", "Accept": "application/json"},
+            )
+            emails = email_resp.json()
+            primary = next((e for e in emails if e.get("primary")), emails[0] if emails else {})
+            gh_email = primary.get("email", "")
+
+    gh_id = str(gh_user.get("id", ""))
+    username = gh_user.get("login", gh_id).lower()
+    name = gh_user.get("name") or username
+    avatar_url = gh_user.get("avatar_url", "")
+
+    existing = await query_one("SELECT * FROM users WHERE email = ?", (gh_email,))
+    if existing:
+        if avatar_url:
+            await execute("UPDATE users SET avatar_url = ?, name = ? WHERE id = ?", (avatar_url, name, existing["id"]))
+    else:
+        user_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc).isoformat()
+        await execute(
+            "INSERT INTO users (id, email, username, password_hash, name, bio, role, avatar_url, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+            (user_id, gh_email, username, hash_password("gh_" + gh_id), name, "", "user", avatar_url, now),
+        )
+        existing = await query_one("SELECT * FROM users WHERE id = ?", (user_id,))
+
+    access = create_access_token(existing["id"], gh_email)
+    refresh = create_refresh_token(existing["id"])
+    set_auth_cookies(response, access, refresh)
+    response.status_code = 302
+    response.headers["Location"] = os.environ.get("FRONTEND_URL", "https://innovation-lab-za.vercel.app")
+    return {"ok": True}
+
+
 # ---------- Profile Endpoints ----------
 @api_router.patch("/users/me")
 async def update_me(payload: UpdateProfileRequest, user: dict = Depends(get_current_user)):
@@ -439,7 +533,7 @@ async def serve_file(path: str):
 
 # ---------- Projects ----------
 def project_score(p: dict) -> int:
-    return (p.get("upvotes_count", 0) or 0) * 3 + (p.get("views_count", 0) or 0) + (p.get("comments_count", 0) or 0) * 2
+    return (p.get("upvotes_count", 0) or 0) * 3 + (p.get("views_count", 0) or 0) + (p.get("comments_count", 0) or 0) * 2 + (p.get("bookmarks_count", 0) or 0) * 2
 
 
 async def annotate_projects(projects: List[dict], current_user_id: Optional[str]):
@@ -455,8 +549,11 @@ async def annotate_projects(projects: List[dict], current_user_id: Optional[str]
         if current_user_id:
             up = await query_one("SELECT id FROM upvotes WHERE project_id = ? AND user_id = ?", (p["id"], current_user_id))
             p["has_upvoted"] = up is not None
+            bm = await query_one("SELECT id FROM bookmarks WHERE project_id = ? AND user_id = ?", (p["id"], current_user_id))
+            p["has_bookmarked"] = bm is not None
         else:
             p["has_upvoted"] = False
+            p["has_bookmarked"] = False
         p["badges"] = compute_badges(p)
         out.append(p)
     return out
@@ -506,8 +603,8 @@ async def create_project(payload: ProjectCreate, user: dict = Depends(get_curren
     tags_json = json.dumps(payload.tags)
     tech_json = json.dumps(payload.tech_stack)
     await execute(
-        "INSERT INTO projects (id, slug, name, tagline, description, website_url, github_url, category, tags, tech_stack, cover_image_url, maker_id, upvotes_count, views_count, comments_count, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        (pid, slug, payload.name, payload.tagline, payload.description, payload.website_url, payload.github_url or "", payload.category, tags_json, tech_json, payload.cover_image_url or "", user["id"], 0, 0, 0, now),
+        "INSERT INTO projects (id, slug, name, tagline, description, website_url, github_url, category, tags, tech_stack, cover_image_url, maker_id, upvotes_count, views_count, comments_count, bookmarks_count, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        (pid, slug, payload.name, payload.tagline, payload.description, payload.website_url, payload.github_url or "", payload.category, tags_json, tech_json, payload.cover_image_url or "", user["id"], 0, 0, 0, 0, now),
     )
     project = await query_one("SELECT * FROM projects WHERE id = ?", (pid,))
     project["tags"] = parse_json_list(project.get("tags"))
@@ -571,8 +668,19 @@ async def get_project(slug: str, request: Request):
     p = await query_one("SELECT * FROM projects WHERE slug = ?", (slug,))
     if not p:
         raise HTTPException(status_code=404, detail="Project not found")
-    await execute("UPDATE projects SET views_count = views_count + 1 WHERE id = ?", (p["id"],))
-    p["views_count"] = (p.get("views_count", 0) or 0) + 1
+    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    recent = await query_one(
+        "SELECT id FROM project_views WHERE project_id = ? AND ip_address = ? AND viewed_at > ?",
+        (p["id"], client_ip, one_hour_ago),
+    )
+    if not recent:
+        await execute(
+            "INSERT INTO project_views (id, project_id, ip_address, viewed_at) VALUES (?,?,?,?)",
+            (str(uuid.uuid4()), p["id"], client_ip, datetime.now(timezone.utc).isoformat()),
+        )
+        await execute("UPDATE projects SET views_count = views_count + 1 WHERE id = ?", (p["id"],))
+        p["views_count"] = (p.get("views_count", 0) or 0) + 1
     cur = await get_optional_user(request)
     annotated = await annotate_projects([p], cur["id"] if cur else None)
     return annotated[0]
@@ -635,15 +743,22 @@ async def toggle_upvote(pid: str, user: dict = Depends(get_current_user)):
 # ---------- Comments ----------
 @api_router.get("/projects/{pid}/comments")
 async def get_comments(pid: str):
-    comments = await query("SELECT * FROM comments WHERE project_id = ? ORDER BY created_at DESC", (pid,))
+    comments = await query("SELECT * FROM comments WHERE project_id = ? AND parent_id IS NULL ORDER BY created_at DESC", (pid,))
     out = []
     for c in comments:
-        u = await query_one("SELECT * FROM users WHERE id = ?", (c["user_id"],))
-        if u:
-            u.pop("password_hash", None)
-        c["author"] = serialize_user(u) if u else None
+        c["author"] = await get_comment_author(c["user_id"])
+        c["replies"] = await query("SELECT * FROM comments WHERE parent_id = ? ORDER BY created_at ASC", (c["id"],))
+        for r in c["replies"]:
+            r["author"] = await get_comment_author(r["user_id"])
         out.append(c)
     return out
+
+
+async def get_comment_author(user_id: str):
+    u = await query_one("SELECT * FROM users WHERE id = ?", (user_id,))
+    if u:
+        u.pop("password_hash", None)
+    return serialize_user(u) if u else None
 
 
 @api_router.post("/projects/{pid}/comments")
@@ -651,16 +766,73 @@ async def post_comment(pid: str, payload: CommentCreate, user: dict = Depends(ge
     p = await query_one("SELECT * FROM projects WHERE id = ?", (pid,))
     if not p:
         raise HTTPException(status_code=404, detail="Project not found")
+    if payload.parent_id:
+        parent = await query_one("SELECT id FROM comments WHERE id = ? AND project_id = ?", (payload.parent_id, pid))
+        if not parent:
+            raise HTTPException(status_code=404, detail="Parent comment not found")
     cid = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     await execute(
-        "INSERT INTO comments (id, project_id, user_id, body, created_at) VALUES (?,?,?,?,?)",
-        (cid, pid, user["id"], payload.body, now),
+        "INSERT INTO comments (id, project_id, user_id, parent_id, body, created_at) VALUES (?,?,?,?,?,?)",
+        (cid, pid, user["id"], payload.parent_id, payload.body, now),
     )
     await execute("UPDATE projects SET comments_count = comments_count + 1 WHERE id = ?", (pid,))
     comment = await query_one("SELECT * FROM comments WHERE id = ?", (cid,))
     comment["author"] = serialize_user(user)
+    comment["replies"] = []
     return comment
+
+
+# ---------- Comment Likes ----------
+@api_router.post("/comments/{cid}/like")
+async def toggle_comment_like(cid: str, user: dict = Depends(get_current_user)):
+    comment = await query_one("SELECT * FROM comments WHERE id = ?", (cid,))
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    existing = await query_one("SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?", (cid, user["id"]))
+    if existing:
+        await execute("DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?", (cid, user["id"]))
+        await execute("UPDATE comments SET likes_count = MAX(likes_count - 1, 0) WHERE id = ?", (cid,))
+        return {"liked": False, "likes_count": max(0, (comment.get("likes_count", 0) or 0) - 1)}
+    await execute(
+        "INSERT INTO comment_likes (id, comment_id, user_id, created_at) VALUES (?,?,?,?)",
+        (str(uuid.uuid4()), cid, user["id"], datetime.now(timezone.utc).isoformat()),
+    )
+    await execute("UPDATE comments SET likes_count = likes_count + 1 WHERE id = ?", (cid,))
+    return {"liked": True, "likes_count": (comment.get("likes_count", 0) or 0) + 1}
+
+
+# ---------- Bookmarks ----------
+@api_router.post("/projects/{pid}/bookmark")
+async def toggle_bookmark(pid: str, user: dict = Depends(get_current_user)):
+    p = await query_one("SELECT id FROM projects WHERE id = ?", (pid,))
+    if not p:
+        raise HTTPException(status_code=404, detail="Project not found")
+    existing = await query_one("SELECT id FROM bookmarks WHERE project_id = ? AND user_id = ?", (pid, user["id"]))
+    if existing:
+        await execute("DELETE FROM bookmarks WHERE project_id = ? AND user_id = ?", (pid, user["id"]))
+        await execute("UPDATE projects SET bookmarks_count = MAX(bookmarks_count - 1, 0) WHERE id = ?", (pid,))
+        return {"bookmarked": False}
+    await execute(
+        "INSERT INTO bookmarks (id, project_id, user_id, created_at) VALUES (?,?,?,?)",
+        (str(uuid.uuid4()), pid, user["id"], datetime.now(timezone.utc).isoformat()),
+    )
+    await execute("UPDATE projects SET bookmarks_count = bookmarks_count + 1 WHERE id = ?", (pid,))
+    return {"bookmarked": True}
+
+
+@api_router.get("/users/me/bookmarks")
+async def get_bookmarks(user: dict = Depends(get_current_user)):
+    rows = await query("SELECT project_id FROM bookmarks WHERE user_id = ? ORDER BY created_at DESC", (user["id"],))
+    if not rows:
+        return []
+    pids = [r["project_id"] for r in rows]
+    placeholders = ",".join("?" for _ in pids)
+    projects = await query(f"SELECT * FROM projects WHERE id IN ({placeholders})", tuple(pids))
+    for p in projects:
+        p["tags"] = parse_json_list(p.get("tags"))
+        p["tech_stack"] = parse_json_list(p.get("tech_stack"))
+    return projects
 
 
 # ---------- Stats ----------
@@ -758,8 +930,8 @@ async def seed_demo_data():
         slug = "-".join(d["name"].lower().split()) + "-" + pid[:6]
         now = (datetime.now(timezone.utc) - timedelta(days=secrets.randbelow(20))).isoformat()
         await execute(
-            "INSERT INTO projects (id, slug, name, tagline, description, website_url, github_url, category, tags, tech_stack, cover_image_url, maker_id, upvotes_count, views_count, comments_count, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            (pid, slug, d["name"], d["tagline"], f"{d['tagline']}. Built for indie hackers who care about craft and shipping.", d.get("website_url", "https://example.com"), "https://github.com", d["category"], json.dumps(d["tags"]), json.dumps(d["tech_stack"]), d["cover_image_url"], maker["id"], d["upvotes"], d["views"], d["comments"], now),
+            "INSERT INTO projects (id, slug, name, tagline, description, website_url, github_url, category, tags, tech_stack, cover_image_url, maker_id, upvotes_count, views_count, comments_count, bookmarks_count, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (pid, slug, d["name"], d["tagline"], f"{d['tagline']}. Built for indie hackers who care about craft and shipping.", d.get("website_url", "https://example.com"), "https://github.com", d["category"], json.dumps(d["tags"]), json.dumps(d["tech_stack"]), d["cover_image_url"], maker["id"], d["upvotes"], d["views"], d["comments"], 0, now),
         )
 
 
