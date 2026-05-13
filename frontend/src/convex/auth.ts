@@ -39,7 +39,8 @@ export const createUser = mutation({
     createdAt: v.string(),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("users", { ...args, bio: args.bio || "", avatarUrl: args.avatarUrl || "", twitter: args.twitter || "", github: args.github || "", website: args.website || "" });
+    const { id, ...data } = args;
+    await ctx.db.insert("users", { ...data, bio: data.bio || "", avatarUrl: data.avatarUrl || "", twitter: data.twitter || "", github: data.github || "", website: data.website || "" });
   },
 });
 

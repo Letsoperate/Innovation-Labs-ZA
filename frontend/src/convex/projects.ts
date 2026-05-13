@@ -81,7 +81,8 @@ export const createProject = mutation({
     coverImageUrl: v.string(), makerId: v.string(), createdAt: v.string(),
   }),
   handler: async (ctx, args) => {
-    await ctx.db.insert("projects", { ...args, upvotesCount: 0, viewsCount: 0, commentsCount: 0, bookmarksCount: 0 });
+    const { id, ...data } = args;
+    await ctx.db.insert("projects", { ...data, upvotesCount: 0, viewsCount: 0, commentsCount: 0, bookmarksCount: 0 });
   },
 });
 
