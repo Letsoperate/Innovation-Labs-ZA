@@ -144,10 +144,6 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-grid opacity-10" />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <FadeIn>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-white/20 text-xs uppercase tracking-[0.2em] font-semibold mb-8">
-              <Lightning size={12} weight="fill" className="text-primary" />
-              Free forever for makers
-            </div>
             <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-7xl tracking-tighter leading-[0.95]">
               Your project deserves <br />
               <span className="text-primary">more than 24 hours</span> of attention.
