@@ -1,0 +1,107 @@
+{
+  "theme": "Light",
+  "archetype": "4 (Swiss & High-Contrast)",
+  "emotion": "Inspiring, functional, energetic, community-driven",
+  "typography": {
+    "headings": "Outfit",
+    "body": "DM Sans",
+    "banned_fonts": ["Inter", "Roboto", "Open Sans", "Lato", "Syne", "Space Grotesk"],
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-black",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-bold",
+      "h3": "text-xl sm:text-2xl font-bold",
+      "h4": "text-lg sm:text-xl font-semibold",
+      "body": "text-base leading-relaxed font-normal",
+      "small": "text-sm",
+      "overline": "text-xs uppercase tracking-[0.2em] font-semibold"
+    }
+  },
+  "colors": {
+    "background": "#FFFFFF",
+    "foreground": "#09090B",
+    "primary": {
+      "DEFAULT": "#FF4500",
+      "foreground": "#FFFFFF"
+    },
+    "secondary": {
+      "DEFAULT": "#F4F4F5",
+      "foreground": "#18181B"
+    },
+    "muted": {
+      "DEFAULT": "#FAFAFA",
+      "foreground": "#71717A"
+    },
+    "accent": {
+      "DEFAULT": "#FF4500",
+      "foreground": "#FFFFFF"
+    },
+    "border": "#E4E4E7",
+    "card": {
+      "DEFAULT": "#FFFFFF",
+      "foreground": "#09090B"
+    }
+  },
+  "spacing_and_layout": {
+    "grid_strategy": "Control Room Grid for Leaderboard/Data, Bento Grid for Marketing/Hero sections",
+    "spacing_scale": "Generous spacing: use p-6 or p-8 for cards. p-12, p-20, or p-24 for section padding.",
+    "borders": "1px solid border-border, subtle rounding (max rounded-sm or rounded-none) for a sharp, technical SaaS feel.",
+    "cards": "Flat background, 1px subtle border, no shadow by default. Hover state: -translate-y-1, shadow-lg, border-border/80 transition-all duration-300."
+  },
+  "surface_strategies": {
+    "header": "Crystal Glass: backdrop-blur-xl bg-white/70, 1px border-b border-border/40. Fixed top-0 z-50.",
+    "footer": "High contrast shift: Dark footer (bg-[#09090B] text-white) to anchor the page, py-20 spacing."
+  },
+  "components": {
+    "buttons": "Square or rounded-sm, high contrast. Primary: bg-primary text-white hover:bg-primary/90. Secondary: bg-secondary text-foreground hover:bg-secondary/80. Active state: scale-95.",
+    "leaderboard": "List format with strict grid hierarchy. Dense and compact spacing (gap-4). Flex container for each row with fixed width for upvotes.",
+    "project_card": "Grid layout. Project icon/image on left. 1px border. Upvote button distinct and clickable on the right. Combined score visible.",
+    "forms": "Shadcn components heavily customized: flat inputs, 1px border, focus:ring-2 focus:ring-primary/20 focus:border-primary.",
+    "tabs": "Shadcn tabs for Weekly/Monthly/All-time leaderboard toggle. Clean underline style or segmented control style."
+  },
+  "motion_and_interactions": {
+    "global_animation": "Smooth fade + slide-in on scroll across all pages. (Framer Motion `whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} viewport={{ once: true, margin: '-50px' }}`).",
+    "hero": "Bold parallax + staggered reveals for typography and main CTA.",
+    "hover_states": "All interactive elements MUST have explicit hover states ensuring contrast (e.g., hover:bg-secondary hover:text-foreground).",
+    "micro_interactions": "Upvote button should have a quick scale bounce animation on click."
+  },
+  "media_and_icons": {
+    "icon_library": "@phosphor-icons/react (Duotone or Regular weight)",
+    "image_urls": [
+      {
+        "category": "hero_background",
+        "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80",
+        "description": "Abstract tech/code background, minimal and clean, suitable for hero sections or landing page accents"
+      },
+      {
+        "category": "project_cover_default",
+        "url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80",
+        "description": "Abstract liquid/geometric minimal art for default project covers and screenshots"
+      },
+      {
+        "category": "avatar_default",
+        "url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80",
+        "description": "Clean portrait for default user avatars"
+      },
+      {
+        "category": "empty_state",
+        "url": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80",
+        "description": "Minimal workspace desk for empty states (e.g. no projects found)"
+      }
+    ]
+  },
+  "testing": {
+    "data_testid_rules": "All interactive and key informational elements MUST include a `data-testid` attribute (e.g., `data-testid=\"upvote-button\"`, `data-testid=\"project-card\"`)."
+  },
+  "instructions_to_main_agent": [
+    "Install required dependencies: `yarn add framer-motion @phosphor-icons/react clsx tailwind-merge`.",
+    "Configure `tailwind.config.js` with the specified colors (primary: #FF4500, background: #FFFFFF, foreground: #09090B). Set border radius to 0.125rem (rounded-sm) globally.",
+    "Use @fontsource/outfit for headings and @fontsource/dm-sans for body text.",
+    "Build the Hero section with Framer Motion for bold parallax and staggered reveals of typography.",
+    "Implement the Leaderboard prominently on the main page. Include tabs (Weekly/Monthly/All-time) using customized Shadcn Tabs. Calculate ranking using combined score (upvotes + views + comments).",
+    "Develop Hacker Profiles, Auth pages, and a multi-step Project Submission form.",
+    "Ensure the Project Detail page uses structured data visualization (tech stack bento grid, large screenshots, tags).",
+    "Integrate Framer Motion `whileInView` for smooth fade + slide-in on scroll on all feed items and page sections.",
+    "Do NOT use placeholder text for images. Use the provided Unsplash URLs.",
+    "Implement the 'Crystal Glass' strategy for the top navigation header."
+  ]
+}
