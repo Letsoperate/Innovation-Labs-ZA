@@ -19,7 +19,7 @@ from typing import List, Optional
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Response, UploadFile, File, Form, Query, Header
 from fastapi.responses import Response as FastResponse
 from starlette.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field
 
 
 # ---------- Setup ----------
