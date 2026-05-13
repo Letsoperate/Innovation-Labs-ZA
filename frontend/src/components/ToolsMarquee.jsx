@@ -119,7 +119,7 @@ function MarqueeRow({ tools, reverse }) {
   return (
     <div className="relative overflow-hidden py-2">
       <div
-        className="marquee-row flex gap-1 items-center"
+        className="marquee-row flex gap-2 items-center"
         style={{ animationDirection: reverse ? "reverse" : "normal" }}
       >
         {[...tools, ...tools, ...tools].map((tool, i) => (
@@ -129,12 +129,12 @@ function MarqueeRow({ tools, reverse }) {
             target="_blank"
             rel="noreferrer"
             title={tool.name}
-            className="flex-shrink-0 flex items-center justify-center w-9 h-9 border border-border/30 hover:border-foreground/40 hover:bg-secondary/40 transition-colors rounded-md"
+            className="flex-shrink-0 flex items-center justify-center w-12 h-12 border border-border/30 hover:border-foreground/40 hover:bg-secondary/40 transition-colors rounded-md"
           >
             <img
               src={`https://unpkg.com/simple-icons@13.21.0/icons/${tool.slug}.svg`}
               alt={tool.name}
-              className="w-4 h-4"
+              className="w-6 h-6"
               loading="eager"
             />
           </a>
@@ -162,7 +162,7 @@ export default function ToolsMarquee() {
     <div className="border-t border-border bg-background">
       <div className="border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-[10px] uppercase tracking-[0.25em] font-semibold text-muted-foreground py-2">
+          <p className="text-[10px] uppercase tracking-[0.25em] font-semibold text-muted-foreground py-2 text-center">
             Hacker Tools
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function ToolsMarquee() {
       </div>
       <div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-[10px] uppercase tracking-[0.25em] font-semibold text-green-600 py-2">
+          <p className="text-[10px] uppercase tracking-[0.25em] font-semibold text-green-600 py-2 text-center">
             Student Benefits
           </p>
         </div>
