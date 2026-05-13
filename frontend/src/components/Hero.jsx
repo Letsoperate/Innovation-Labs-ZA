@@ -2,7 +2,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { ArrowRight, Lightning, Sparkle, Rocket } from "@phosphor-icons/react";
+import { ArrowRight, Rocket } from "@phosphor-icons/react";
 
 export default function Hero({ stats }) {
   const ref = useRef(null);
@@ -39,17 +39,6 @@ export default function Hero({ stats }) {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div style={{ opacity }} className="max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 border border-border bg-secondary/60 text-xs uppercase tracking-[0.2em] font-semibold mb-8"
-            data-testid="hero-badge"
-          >
-            <Sparkle size={12} weight="fill" className="text-primary" />
-            Product Discovery Platform
-          </motion.div>
-
           <h1 className="font-heading font-black text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-tighter leading-[0.95]">
             <motion.span
               initial={{ opacity: 0, y: 30 }}
