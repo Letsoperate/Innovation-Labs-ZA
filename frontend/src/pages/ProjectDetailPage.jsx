@@ -37,7 +37,7 @@ export default function ProjectDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [slug, navigate]);
+  }, [slug]);
 
   useEffect(() => { load(); }, [load]);
 
