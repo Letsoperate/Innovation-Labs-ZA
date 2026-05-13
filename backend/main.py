@@ -313,21 +313,24 @@ async def categories():
 async def root(): return{"message":"Innovation Lab ZA API","version":"1.0"}
 
 async def seed():
-    if not await cv_get_user_by_email("admin@innovationlabza.dev"):
-        await cv_create_user(id=str(uuid.uuid4()),email="admin@innovationlabza.dev",username="admin",passwordHash=hash_password("admin123"),name="Admin",bio="Platform admin",role="admin",createdAt=datetime.now(timezone.utc).isoformat())
-        logger.info("Admin seeded")
-    if not await cv_get_user_by_email("demo@innovationlabza.dev"):
-        mid=str(uuid.uuid4());n=datetime.now(timezone.utc).isoformat()
-        await cv_create_user(id=mid,email="demo@innovationlabza.dev",username="demo",passwordHash=hash_password("demo123"),name="Demo Maker",bio="Building stuff in public.",role="user",twitter="demo",github="demo",website="https://example.com",createdAt=n)
-        ps=[
-            {"name":"Synthwave Notes","tagline":"Markdown notes","category":"productivity","tags":json.dumps(["notes","markdown"]),"techStack":json.dumps(["React","FastAPI"]),"coverImageUrl":"https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe","upvotes":142,"views":980,"comments":18},
-            {"name":"DeployDash","tagline":"One-click deploys","category":"developer-tools","tags":json.dumps(["deploy","devops"]),"techStack":json.dumps(["Go","React"]),"coverImageUrl":"https://images.unsplash.com/photo-1551288049-bebda4e38f71","upvotes":211,"views":1450,"comments":32},
-            {"name":"Predator Bot Market","tagline":"Trading bots marketplace","category":"saas","tags":json.dumps(["bots","automation"]),"techStack":json.dumps(["React","Node.js"]),"coverImageUrl":"https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5","websiteUrl":"https://predator-bot-market.netlify.app/","upvotes":120,"views":850,"comments":16},
-        ]
-        for d in ps:
-            pid=str(uuid.uuid4());slug="-".join(d["name"].lower().split())+"-"+pid[:6]
-            await cv_create_project(id=pid,slug=slug,name=d["name"],tagline=d["tagline"],description=f"{d['tagline']}. Built for indie hackers.",websiteUrl=d.get("websiteUrl","https://example.com"),githubUrl="https://github.com",category=d["category"],tags=d["tags"],techStack=d["techStack"],coverImageUrl=d["coverImageUrl"],makerId=mid,createdAt=(datetime.now(timezone.utc)-timedelta(days=secrets.randbelow(20))).isoformat())
-        logger.info("Demo data seeded")
+    try:
+        if not await cv_get_user_by_email("admin@innovationlabza.dev"):
+            await cv_create_user(id=str(uuid.uuid4()),email="admin@innovationlabza.dev",username="admin",passwordHash=hash_password("admin123"),name="Admin",bio="Platform admin",role="admin",createdAt=datetime.now(timezone.utc).isoformat())
+            logger.info("Admin seeded")
+        if not await cv_get_user_by_email("demo@innovationlabza.dev"):
+            mid=str(uuid.uuid4());n=datetime.now(timezone.utc).isoformat()
+            await cv_create_user(id=mid,email="demo@innovationlabza.dev",username="demo",passwordHash=hash_password("demo123"),name="Demo Maker",bio="Building stuff in public.",role="user",twitter="demo",github="demo",website="https://example.com",createdAt=n)
+            ps=[
+                {"name":"Synthwave Notes","tagline":"Markdown notes","category":"productivity","tags":json.dumps(["notes","markdown"]),"techStack":json.dumps(["React","FastAPI"]),"coverImageUrl":"https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe","upvotes":142,"views":980,"comments":18},
+                {"name":"DeployDash","tagline":"One-click deploys","category":"developer-tools","tags":json.dumps(["deploy","devops"]),"techStack":json.dumps(["Go","React"]),"coverImageUrl":"https://images.unsplash.com/photo-1551288049-bebda4e38f71","upvotes":211,"views":1450,"comments":32},
+                {"name":"Predator Bot Market","tagline":"Trading bots marketplace","category":"saas","tags":json.dumps(["bots","automation"]),"techStack":json.dumps(["React","Node.js"]),"coverImageUrl":"https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5","websiteUrl":"https://predator-bot-market.netlify.app/","upvotes":120,"views":850,"comments":16},
+            ]
+            for d in ps:
+                pid=str(uuid.uuid4());slug="-".join(d["name"].lower().split())+"-"+pid[:6]
+                await cv_create_project(id=pid,slug=slug,name=d["name"],tagline=d["tagline"],description=f"{d['tagline']}. Built for indie hackers.",websiteUrl=d.get("websiteUrl","https://example.com"),githubUrl="https://github.com",category=d["category"],tags=d["tags"],techStack=d["techStack"],coverImageUrl=d["coverImageUrl"],makerId=mid,createdAt=(datetime.now(timezone.utc)-timedelta(days=secrets.randbelow(20))).isoformat())
+            logger.info("Demo data seeded")
+    except Exception as e:
+        logger.error(f"Seed error (non-fatal): {e}")
 
 @app.on_event("startup")
 async def startup():
