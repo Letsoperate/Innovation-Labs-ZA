@@ -11,7 +11,7 @@ import asyncio
 import sqlite3
 import logging
 import secrets
-import bcrypt
+import hashlib
 import jwt
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
@@ -152,12 +152,17 @@ def parse_json_list(val) -> list:
 
 # ---------- Auth helpers ----------
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    salt = os.urandom(16)
+    pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    return salt.hex() + ':' + pwd_hash.hex()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
     try:
-        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+        salt_hex, pwd_hex = hashed.split(':')
+        salt = bytes.fromhex(salt_hex)
+        pwd_hash = hashlib.pbkdf2_hmac('sha256', plain.encode('utf-8'), salt, 100000)
+        return pwd_hash.hex() == pwd_hex
     except Exception:
         return False
 
@@ -263,14 +268,14 @@ MIME_TYPES = {
 
 # ---------- Models ----------
 class RegisterRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     name: str
     username: str
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
