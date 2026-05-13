@@ -1,18 +1,13 @@
-from dotenv import load_dotenv
-from pathlib import Path
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
 import os
 import uuid
 import json
 import asyncio
 import sqlite3
+import hashlib
 import logging
 import secrets
-import hashlib
 import jwt
+from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
@@ -33,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 JWT_ALGORITHM = "HS256"
 APP_NAME = os.environ.get("APP_NAME", "innovation-lab-za")
-UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR = Path("/tmp/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
