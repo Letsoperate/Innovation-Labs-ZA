@@ -69,7 +69,7 @@ def set_cookies(r, at, rt):
 def serialize_user(u):
     return {"id": u.get("id",""), "email": u["email"], "username": u.get("username"), "name": u.get("name",""), "bio": u.get("bio",""), "avatar_url": u.get("avatar_url") or u.get("avatarUrl"), "twitter": u.get("twitter"), "github": u.get("github"), "website": u.get("website"), "role": u.get("role","user"), "created_at": u.get("created_at") or u.get("createdAt")}
 
-async def get_current_user(request):
+async def get_current_user(request: Request):
     token = request.cookies.get("access_token") or ""
     if not token:
         ah = request.headers.get("Authorization","")
@@ -84,7 +84,7 @@ async def get_current_user(request):
     except jwt.ExpiredSignatureError: raise HTTPException(401, "Token expired")
     except jwt.InvalidTokenError: raise HTTPException(401, "Invalid token")
 
-async def get_optional_user(request):
+async def get_optional_user(request: Request):
     try: return await get_current_user(request)
     except HTTPException: return None
 
