@@ -33,8 +33,7 @@ export default function ProjectDetailPage() {
       const c = await api.get(`/projects/${data.id}/comments`);
       setComments(c.data);
     } catch {
-      toast.error("Project not found");
-      navigate("/discover");
+      toast.error("Project not found — the database may have reset. Please refresh.");
     } finally {
       setLoading(false);
     }

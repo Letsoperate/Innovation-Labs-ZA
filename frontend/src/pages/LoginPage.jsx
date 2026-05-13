@@ -52,8 +52,8 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={onSubmit} className="space-y-5 border border-border bg-card p-8 rounded-2xl" data-testid="login-form">
-            <button type="button" onClick={onGitHubLogin} className="w-full flex items-center justify-center gap-2 h-11 border border-border hover:border-foreground/40 transition-colors rounded-full font-medium text-sm bg-foreground text-background">
-              <GithubLogo size={20} weight="fill" /> Continue with GitHub
+            <button type="button" onClick={onGitHubLogin} className="w-full flex items-center justify-center gap-3 h-12 border-2 border-border hover:border-[#24292e] transition-all rounded-full font-semibold text-sm bg-[#24292e] text-white hover:bg-[#1b1f23]">
+              <GithubLogo size={22} weight="fill" /> Continue with GitHub
             </button>
             <div className="flex items-center gap-4">
               <div className="flex-1 h-px bg-border" />

@@ -13,7 +13,7 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Response, UploadFile, File, Form, Query, Header
-from fastapi.responses import Response as FastResponse
+from fastapi.responses import Response as FastResponse, RedirectResponse
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -466,10 +466,10 @@ async def github_callback(code: str, response: Response):
 
     access = create_access_token(existing["id"], gh_email)
     refresh = create_refresh_token(existing["id"])
-    set_auth_cookies(response, access, refresh)
-    response.status_code = 302
-    response.headers["Location"] = os.environ.get("FRONTEND_URL", "https://innovation-lab-za.vercel.app")
-    return {"ok": True}
+    frontend_url = os.environ.get("FRONTEND_URL", "https://innovation-lab-za.vercel.app")
+    redirect = RedirectResponse(url=frontend_url, status_code=302)
+    set_auth_cookies(redirect, access, refresh)
+    return redirect
 
 
 # ---------- Profile Endpoints ----------

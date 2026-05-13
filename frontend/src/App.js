@@ -14,6 +14,17 @@ import SubmitProjectPage from "./pages/SubmitProjectPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
+import BuildersPage from "./pages/BuildersPage";
+import FreeToolsPage from "./pages/FreeToolsPage";
+import AlternativesPage from "./pages/AlternativesPage";
+import BlogPage from "./pages/BlogPage";
+import NewsletterPage from "./pages/NewsletterPage";
+import CommunityPage from "./pages/CommunityPage";
+import PricingPage from "./pages/PricingPage";
+import PartnershipsPage from "./pages/PartnershipsPage";
+import AffiliatesPage from "./pages/AffiliatesPage";
+import FaqPage from "./pages/FaqPage";
+import RulesPage from "./pages/RulesPage";
 
 function App() {
   return (
@@ -31,6 +42,17 @@ function App() {
             <Route path="/submit" element={<SubmitProjectPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/builders" element={<BuildersPage />} />
+            <Route path="/free-tools" element={<FreeToolsPage />} />
+            <Route path="/alternatives" element={<AlternativesPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/newsletter" element={<NewsletterPage />} />
+            <Route path="/community" element={<CommunityPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/partnerships" element={<PartnershipsPage />} />
+            <Route path="/affiliates" element={<AffiliatesPage />} />
+            <Route path="/faq" element={<FaqPage />} />
+            <Route path="/rules" element={<RulesPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

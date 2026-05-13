@@ -1,15 +1,12 @@
 # Innovation Lab ZA
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-prototype-orange" alt="Prototype" />
-  <a href="https://innovation-lab-za.vercel.app">
-    <img src="https://img.shields.io/badge/deploy-live-000?logo=vercel&labelColor=000" alt="Vercel" />
-  </a>
+  <a href="https://github.com/Letsoperate/Innovation-Labs-ZA/actions/workflows/ci.yml"><img src="https://github.com/Letsoperate/Innovation-Labs-ZA/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://innovation-lab-za.vercel.app"><img src="https://img.shields.io/badge/deploy-live-000?logo=vercel&labelColor=000" alt="Vercel" /></a>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" />
-  <img src="https://img.shields.io/badge/frontend-React-61DAFB?logo=react" alt="React" />
-  <img src="https://img.shields.io/badge/backend-FastAPI-009688?logo=fastapi" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/database-MongoDB-47A248?logo=mongodb" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/styling-Tailwind%20CSS-06B6D4?logo=tailwindcss" alt="Tailwind" />
+  <img src="https://img.shields.io/github/languages/top/Letsoperate/Innovation-Labs-ZA" alt="Top Language" />
+  <img src="https://img.shields.io/github/last-commit/Letsoperate/Innovation-Labs-ZA" alt="Last Commit" />
+  <img src="https://img.shields.io/github/repo-size/Letsoperate/Innovation-Labs-ZA" alt="Repo Size" />
 </p>
 
 A product discovery platform for South African indie makers. Submit your projects, get upvoted, rank on the leaderboard, and connect with the community.
