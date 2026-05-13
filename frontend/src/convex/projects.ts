@@ -79,10 +79,12 @@ export const createProject = mutation({
     id: v.string(), slug: v.string(), name: v.string(), tagline: v.string(), description: v.string(),
     websiteUrl: v.string(), githubUrl: v.string(), category: v.string(), tags: v.string(), techStack: v.string(),
     coverImageUrl: v.string(), makerId: v.string(), createdAt: v.string(),
+    upvotesCount: v.optional(v.number()), viewsCount: v.optional(v.number()),
+    commentsCount: v.optional(v.number()), bookmarksCount: v.optional(v.number()),
   }),
   handler: async (ctx, args) => {
     const { id, ...data } = args;
-    await ctx.db.insert("projects", { ...data, upvotesCount: 0, viewsCount: 0, commentsCount: 0, bookmarksCount: 0 });
+    await ctx.db.insert("projects", { ...data });
   },
 });
 
