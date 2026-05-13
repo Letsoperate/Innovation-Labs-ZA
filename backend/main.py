@@ -17,7 +17,55 @@ from fastapi.responses import Response as FastResponse, RedirectResponse
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-import convex_client as cv
+CV_SITE = os.environ.get("CONVEX_SITE_URL", "https://small-dogfish-122.convex.site")
+
+async def cv_q(type_: str, **params):
+    async with httpx.AsyncClient(timeout=15) as c:
+        r = await c.get(f"{CV_SITE}/query", params={"type": type_, **params})
+        return r.json() if r.status_code == 200 else None if r.status_code == 404 else (_ for _ in ()).throw(Exception(f"Convex error {r.status_code}: {r.text}"))
+
+async def cv_m(type_: str, args: dict):
+    async with httpx.AsyncClient(timeout=15) as c:
+        r = await c.post(f"{CV_SITE}/mutation", json={"type": type_, "args": args})
+        return r.json() if r.status_code == 200 else (_ for _ in ()).throw(Exception(f"Convex error {r.status_code}: {r.text}"))
+
+async def cv_get_user_by_email(email: str):
+    return await cv_q("getUserByEmail", email=email)
+async def cv_get_user_by_username(username: str):
+    return await cv_q("getUserByUsername", username=username)
+async def cv_create_user(**k):
+    return await cv_m("createUser", k)
+async def cv_update_user(id: str, u: dict):
+    return await cv_m("updateUser", {"id": id, "updates": u})
+async def cv_list_projects(sort="recent", category=None, q=None, limit=50):
+    p = {"sort": sort, "limit": str(limit)}
+    if category: p["category"] = category
+    if q: p["q"] = q
+    return await cv_q("listProjects", **p) or []
+async def cv_get_project(slug: str):
+    return await cv_q("getProject", slug=slug)
+async def cv_create_project(**k):
+    return await cv_m("createProject", k)
+async def cv_update_project(slug: str, u: dict):
+    return await cv_m("updateProject", {"slug": slug, "updates": u})
+async def cv_delete_project(slug: str):
+    return await cv_m("deleteProject", {"slug": slug})
+async def cv_get_upvote(pid: str, uid: str):
+    return await cv_q("getUpvote", projectId=pid, userId=uid)
+async def cv_toggle_upvote(pid: str, uid: str):
+    return await cv_m("toggleUpvote", {"projectId": pid, "userId": uid, "createdAt": datetime.now(timezone.utc).isoformat()})
+async def cv_get_bookmark(pid: str, uid: str):
+    return await cv_q("getBookmark", projectId=pid, userId=uid)
+async def cv_toggle_bookmark(pid: str, uid: str):
+    return await cv_m("toggleBookmark", {"projectId": pid, "userId": uid, "createdAt": datetime.now(timezone.utc).isoformat()})
+async def cv_record_view(pid: str, ip: str):
+    return await cv_m("recordView", {"projectId": pid, "ipAddress": ip, "viewedAt": datetime.now(timezone.utc).isoformat()})
+async def cv_get_banners():
+    return await cv_q("getBanners") or []
+async def cv_create_banner(**k):
+    return await cv_m("createBanner", k)
+async def cv_delete_banner(bid: str):
+    return await cv_m("deleteBanner", {"id": bid})
 
 app = FastAPI(title="Innovation Lab ZA API")
 api_router = APIRouter(prefix="/api")
@@ -76,7 +124,7 @@ async def get_current_user(request: Request) -> dict:
         payload = jwt.decode(token, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
         if payload.get("type") != "access":
             raise HTTPException(status_code=401, detail="Invalid token type")
-        user = await cv.get_user_by_email(payload["sub"])
+        user = await cv_get_user_by_email(payload["sub"])
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         return user
@@ -135,11 +183,11 @@ class CommentCreate(BaseModel):
 @api_router.post("/auth/register")
 async def register(payload: RegisterRequest, response: Response):
     email = payload.email.lower().strip(); username = payload.username.lower().strip()
-    if await cv.get_user_by_email(email): raise HTTPException(400, "Email already registered")
-    if await cv.get_user_by_username(username): raise HTTPException(400, "Username taken")
+    if await cv_get_user_by_email(email): raise HTTPException(400, "Email already registered")
+    if await cv_get_user_by_username(username): raise HTTPException(400, "Username taken")
     user_id = str(uuid.uuid4()); now = datetime.now(timezone.utc).isoformat()
-    await cv.create_user(id=user_id, email=email, username=username, passwordHash=hash_password(payload.password), name=payload.name.strip(), role="user", createdAt=now)
-    user = await cv.get_user_by_email(email)
+    await cv_create_user(id=user_id, email=email, username=username, passwordHash=hash_password(payload.password), name=payload.name.strip(), role="user", createdAt=now)
+    user = await cv_get_user_by_email(email)
     access = create_access_token(user_id, email); refresh = create_refresh_token(user_id)
     set_auth_cookies(response, access, refresh)
     return serialize_user(user)
@@ -148,7 +196,7 @@ async def register(payload: RegisterRequest, response: Response):
 @api_router.post("/auth/login")
 async def login(payload: LoginRequest, response: Response):
     email = payload.email.lower().strip()
-    user = await cv.get_user_by_email(email)
+    user = await cv_get_user_by_email(email)
     if not user or not verify_password(payload.password, user.get("passwordHash", "")):
         raise HTTPException(401, "Invalid email or password")
     access = create_access_token(user["_id"], email); refresh = create_refresh_token(user["_id"])
@@ -174,7 +222,7 @@ async def refresh_token(request: Request, response: Response):
     try:
         payload = jwt.decode(rt, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
         if payload.get("type") != "refresh": raise HTTPException(401, "Invalid token")
-        user = await cv.get_user_by_email(payload["sub"])
+        user = await cv_get_user_by_email(payload["sub"])
         if not user: raise HTTPException(401, "User not found")
         access = create_access_token(user["_id"], user["email"])
         response.set_cookie("access_token", access, httponly=True, secure=False, samesite="lax", max_age=60 * 60 * 24, path="/")
@@ -206,13 +254,13 @@ async def github_callback(code: str, response: Response):
             emails = email_resp.json(); primary = next((e for e in emails if e.get("primary")), emails[0] or {})
             gh_email = primary.get("email", "")
     gh_id = str(gh_user.get("id", "")); username = gh_user.get("login", gh_id).lower(); name = gh_user.get("name") or username; avatar_url = gh_user.get("avatar_url", "")
-    existing = await cv.get_user_by_email(gh_email)
+    existing = await cv_get_user_by_email(gh_email)
     if existing:
-        if avatar_url: await cv.update_user(existing["_id"], {"name": name, "avatarUrl": avatar_url})
+        if avatar_url: await cv_update_user(existing["_id"], {"name": name, "avatarUrl": avatar_url})
     else:
         user_id = str(uuid.uuid4()); now = datetime.now(timezone.utc).isoformat()
-        await cv.create_user(id=user_id, email=gh_email, username=username, passwordHash=hash_password("gh_" + gh_id), name=name, role="user", avatarUrl=avatar_url, createdAt=now)
-        existing = await cv.get_user_by_email(gh_email)
+        await cv_create_user(id=user_id, email=gh_email, username=username, passwordHash=hash_password("gh_" + gh_id), name=name, role="user", avatarUrl=avatar_url, createdAt=now)
+        existing = await cv_get_user_by_email(gh_email)
     access = create_access_token(existing["_id"], gh_email); refresh = create_refresh_token(existing["_id"])
     frontend_url = os.environ.get("FRONTEND_URL", "https://innovation-lab-za.vercel.app")
     redirect = RedirectResponse(url=f"{frontend_url}?github_auth=1", status_code=302)
@@ -231,14 +279,14 @@ async def update_me(payload: UpdateProfileRequest, user: dict = Depends(get_curr
     if "github" in updates: cv_updates["github"] = updates["github"]
     if "website" in updates: cv_updates["website"] = updates["website"]
     if "avatar_url" in updates: cv_updates["avatarUrl"] = updates["avatar_url"]
-    if cv_updates: await cv.update_user(user["_id"], cv_updates)
-    fresh = await cv.get_user_by_email(user["email"])
+    if cv_updates: await cv_update_user(user["_id"], cv_updates)
+    fresh = await cv_get_user_by_email(user["email"])
     return serialize_user(fresh)
 
 
 @api_router.get("/users/{username}")
 async def get_user(username: str):
-    user = await cv.get_user_by_username(username.lower())
+    user = await cv_get_user_by_username(username.lower())
     if not user: raise HTTPException(404, "User not found")
     return {"user": serialize_user(user), "projects": []}
 
@@ -298,9 +346,9 @@ async def annotate_projects(projects: List[dict], current_user_id: Optional[str]
         p["has_upvoted"] = False
         p["has_bookmarked"] = False
         if current_user_id:
-            up = await cv.get_upvote(str(p["_id"]), current_user_id)
+            up = await cv_get_upvote(str(p["_id"]), current_user_id)
             p["has_upvoted"] = up is not None
-            bm = await cv.get_bookmark(str(p["_id"]), current_user_id)
+            bm = await cv_get_bookmark(str(p["_id"]), current_user_id)
             p["has_bookmarked"] = bm is not None
         out.append(p)
     return out
@@ -310,13 +358,13 @@ async def annotate_projects(projects: List[dict], current_user_id: Optional[str]
 async def create_project(payload: ProjectCreate, user: dict = Depends(get_current_user)):
     pid = str(uuid.uuid4()); slug = "-".join(payload.name.lower().split())[:60] + "-" + pid[:6]
     now = datetime.now(timezone.utc).isoformat()
-    await cv.create_project(id=pid, slug=slug, name=payload.name, tagline=payload.tagline, description=payload.description, websiteUrl=payload.website_url, githubUrl=payload.github_url or "", category=payload.category, tags=json.dumps(payload.tags), techStack=json.dumps(payload.tech_stack), coverImageUrl=payload.cover_image_url or "", makerId=user["_id"], createdAt=now)
-    return await cv.get_project(slug)
+    await cv_create_project(id=pid, slug=slug, name=payload.name, tagline=payload.tagline, description=payload.description, websiteUrl=payload.website_url, githubUrl=payload.github_url or "", category=payload.category, tags=json.dumps(payload.tags), techStack=json.dumps(payload.tech_stack), coverImageUrl=payload.cover_image_url or "", makerId=user["_id"], createdAt=now)
+    return await cv_get_project(slug)
 
 
 @api_router.get("/projects")
 async def list_projects_api(request: Request, sort: str = "recent", category: Optional[str] = None, q: Optional[str] = None, limit: int = 50):
-    projects = await cv.list_projects(sort=sort, category=category, q=q, limit=limit)
+    projects = await cv_list_projects(sort=sort, category=category, q=q, limit=limit)
     cur = await get_optional_user(request)
     return await annotate_projects(projects, cur["_id"] if cur else None)
 
@@ -324,7 +372,7 @@ async def list_projects_api(request: Request, sort: str = "recent", category: Op
 @api_router.get("/projects/leaderboard")
 async def leaderboard(request: Request, period: str = "all", limit: int = 10):
     now = datetime.now(timezone.utc)
-    projects = await cv.list_projects(sort="trending", limit=500)
+    projects = await cv_list_projects(sort="trending", limit=500)
     if period == "weekly":
         cutoff = (now - timedelta(days=7)).isoformat()
         projects = [p for p in projects if p.get("createdAt", "") >= cutoff]
@@ -341,10 +389,10 @@ async def leaderboard(request: Request, period: str = "all", limit: int = 10):
 
 @api_router.get("/projects/{slug}")
 async def get_project_api(slug: str, request: Request):
-    p = await cv.get_project(slug)
+    p = await cv_get_project(slug)
     if not p: raise HTTPException(404, detail="Project not found")
     client_ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or "unknown"
-    await cv.record_view(str(p["_id"]), client_ip)
+    await cv_record_view(str(p["_id"]), client_ip)
     p["viewsCount"] = (p.get("viewsCount", 0) or 0) + 1
     cur = await get_optional_user(request)
     annotated = await annotate_projects([p], cur["_id"] if cur else None)
@@ -353,7 +401,7 @@ async def get_project_api(slug: str, request: Request):
 
 @api_router.patch("/projects/{pid}")
 async def update_project_api(pid: str, payload: ProjectUpdate, user: dict = Depends(get_current_user)):
-    p = await cv.get_project(pid) or {}
+    p = await cv_get_project(pid) or {}
     if not p: raise HTTPException(404, "Project not found")
     if p.get("makerId") != user["_id"] and user.get("role") != "admin": raise HTTPException(403, "Forbidden")
     updates = {}
@@ -362,8 +410,8 @@ async def update_project_api(pid: str, payload: ProjectUpdate, user: dict = Depe
         if v is not None: updates[ck] = v
     if payload.tags is not None: updates["tags"] = json.dumps(payload.tags)
     if payload.tech_stack is not None: updates["techStack"] = json.dumps(payload.tech_stack)
-    if updates: await cv.update_project(pid, updates)
-    fresh = await cv.get_project(pid)
+    if updates: await cv_update_project(pid, updates)
+    fresh = await cv_get_project(pid)
     if fresh: fresh["tags"] = json.loads(fresh.get("tags","[]"))
     if fresh: fresh["techStack"] = json.loads(fresh.get("techStack","[]"))
     return fresh
@@ -371,25 +419,25 @@ async def update_project_api(pid: str, payload: ProjectUpdate, user: dict = Depe
 
 @api_router.delete("/projects/{pid}")
 async def delete_project_api(pid: str, user: dict = Depends(get_current_user)):
-    p = await cv.get_project(pid) or {}
+    p = await cv_get_project(pid) or {}
     if not p: raise HTTPException(404, "Project not found")
     if p.get("makerId") != user["_id"] and user.get("role") != "admin": raise HTTPException(403, "Forbidden")
-    await cv.delete_project(pid)
+    await cv_delete_project(pid)
     return {"ok": True}
 
 
 # ---------- Upvotes ----------
 @api_router.post("/projects/{pid}/upvote")
 async def toggle_upvote(pid: str, user: dict = Depends(get_current_user)):
-    result = await cv.toggle_upvote(pid, user["_id"])
-    p = await cv.get_project(pid) or {}
+    result = await cv_toggle_upvote(pid, user["_id"])
+    p = await cv_get_project(pid) or {}
     return {"upvoted": result.get("upvoted", True), "upvotes_count": p.get("upvotesCount", 0) or 0}
 
 
 # ---------- Bookmarks ----------
 @api_router.post("/projects/{pid}/bookmark")
 async def toggle_bookmark(pid: str, user: dict = Depends(get_current_user)):
-    return await cv.toggle_bookmark(pid, user["_id"])
+    return await cv_toggle_bookmark(pid, user["_id"])
 
 
 # ---------- Comments ----------
@@ -406,28 +454,28 @@ async def post_comment(pid: str, payload: CommentCreate, user: dict = Depends(ge
 # ---------- Banners ----------
 @api_router.get("/banners")
 async def get_banners():
-    return await cv.get_banners()
+    return await cv_get_banners()
 
 
 @api_router.post("/admin/banners")
 async def create_banner(banner_id: str, image_url: str, caption: str = "", link_url: str = "", position: str = "top", user: dict = Depends(get_current_user)):
     if user.get("role") != "admin": raise HTTPException(403, "Admin only")
     bid = str(uuid.uuid4()); now = datetime.now(timezone.utc).isoformat()
-    await cv.create_banner(id=bid, imageUrl=image_url, caption=caption, linkUrl=link_url, position=position, sortOrder=0, createdBy=user["_id"], createdAt=now)
+    await cv_create_banner(id=bid, imageUrl=image_url, caption=caption, linkUrl=link_url, position=position, sortOrder=0, createdBy=user["_id"], createdAt=now)
     return {"ok": True}
 
 
 @api_router.delete("/admin/banners/{bid}")
 async def delete_banner(bid: str, user: dict = Depends(get_current_user)):
     if user.get("role") != "admin": raise HTTPException(403, "Admin only")
-    await cv.delete_banner(bid)
+    await cv_delete_banner(bid)
     return {"ok": True}
 
 
 # ---------- Stats ----------
 @api_router.get("/stats")
 async def stats():
-    projects = await cv.list_projects(sort="recent", limit=0)
+    projects = await cv_list_projects(sort="recent", limit=0)
     return {"projects": len(projects), "makers": 0, "upvotes": 0, "comments": 0}
 
 
@@ -440,27 +488,27 @@ async def categories():
 async def seed_admin():
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@innovationlabza.dev")
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
-    existing = await cv.get_user_by_email(admin_email)
+    existing = await cv_get_user_by_email(admin_email)
     if not existing:
         user_id = str(uuid.uuid4()); now = datetime.now(timezone.utc).isoformat()
-        await cv.create_user(id=user_id, email=admin_email, username="admin", passwordHash=hash_password(admin_password), name="Admin", bio="Platform admin", role="admin", createdAt=now)
+        await cv_create_user(id=user_id, email=admin_email, username="admin", passwordHash=hash_password(admin_password), name="Admin", bio="Platform admin", role="admin", createdAt=now)
         logger.info("Admin seeded")
     elif not verify_password(admin_password, existing.get("passwordHash", "")):
-        await cv.update_user(existing["_id"], {"passwordHash": hash_password(admin_password)})
+        await cv_update_user(existing["_id"], {"passwordHash": hash_password(admin_password)})
 
 
 async def seed_demo_data():
     try:
-        projects = await cv.list_projects(sort="recent", limit=1)
+        projects = await cv_list_projects(sort="recent", limit=1)
         if projects: return
     except Exception:
         pass
     demo_email = "demo@innovationlabza.dev"
-    maker = await cv.get_user_by_email(demo_email)
+    maker = await cv_get_user_by_email(demo_email)
     if not maker:
         maker_id = str(uuid.uuid4()); now = datetime.now(timezone.utc).isoformat()
-        await cv.create_user(id=maker_id, email=demo_email, username="demo", passwordHash=hash_password("demo123"), name="Demo Maker", bio="Building stuff in public.", role="user", twitter="demo", github="demo", website="https://example.com", createdAt=now)
-        maker = await cv.get_user_by_email(demo_email)
+        await cv_create_user(id=maker_id, email=demo_email, username="demo", passwordHash=hash_password("demo123"), name="Demo Maker", bio="Building stuff in public.", role="user", twitter="demo", github="demo", website="https://example.com", createdAt=now)
+        maker = await cv_get_user_by_email(demo_email)
     if not maker: return
     demo_projects = [
         {"name":"Synthwave Notes","tagline":"Markdown notes with a retro twist","category":"productivity","tags":["notes","markdown"],"tech_stack":["React","FastAPI"],"cover_image_url":"https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80","upvotes":142,"views":980,"comments":18},
@@ -472,7 +520,7 @@ async def seed_demo_data():
     for d in demo_projects:
         pid = str(uuid.uuid4()); slug = "-".join(d["name"].lower().split()) + "-" + pid[:6]
         now = (datetime.now(timezone.utc) - timedelta(days=secrets.randbelow(20))).isoformat()
-        await cv.create_project(id=pid, slug=slug, name=d["name"], tagline=d["tagline"], description=f"{d['tagline']}. Built for indie hackers who care about craft and shipping.", websiteUrl=d.get("website_url","https://example.com"), githubUrl="https://github.com", category=d["category"], tags=json.dumps(d["tags"]), techStack=json.dumps(d["tech_stack"]), coverImageUrl=d["cover_image_url"], makerId=maker["_id"], createdAt=now)
+        await cv_create_project(id=pid, slug=slug, name=d["name"], tagline=d["tagline"], description=f"{d['tagline']}. Built for indie hackers who care about craft and shipping.", websiteUrl=d.get("website_url","https://example.com"), githubUrl="https://github.com", category=d["category"], tags=json.dumps(d["tags"]), techStack=json.dumps(d["tech_stack"]), coverImageUrl=d["cover_image_url"], makerId=maker["_id"], createdAt=now)
 
 
 @app.on_event("startup")
