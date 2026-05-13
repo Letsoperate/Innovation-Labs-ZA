@@ -47,6 +47,7 @@ export default function ProjectCard({ project, rank, onUpdate }) {
     >
       <Link
         to={`/p/${project.slug}`}
+        state={{ project }}
         className={`group relative block border bg-card hover:shadow-lg transition-all duration-300 p-5 ${
           isTop3 && crown ? `${crown.border} shadow-[${crown.glow}]` : "border-border hover:border-foreground/30"
         }`}

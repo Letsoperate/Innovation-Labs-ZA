@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import api, { fileUrl } from "../lib/api";
 import { FadeIn } from "../components/Motion";
 import { Button } from "../components/ui/button";
@@ -15,6 +15,7 @@ export default function ProjectDetailPage() {
   const { slug } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [project, setProject] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,15 @@ export default function ProjectDetailPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      const cached = location.state?.project;
+      if (cached && cached.slug === slug) {
+        setProject(cached);
+        setHasUp(!!cached.has_upvoted);
+        setUpCount(cached.upvotes_count);
+        setLoading(false);
+        api.get(`/projects/${cached.id}/comments`).then((c) => setComments(c.data));
+        return;
+      }
       const { data } = await api.get(`/projects/${slug}`);
       setProject(data);
       setHasUp(!!data.has_upvoted);
@@ -33,11 +43,11 @@ export default function ProjectDetailPage() {
       const c = await api.get(`/projects/${data.id}/comments`);
       setComments(c.data);
     } catch {
-      toast.error("Project not found — the database may have reset. Please refresh.");
+      toast.error("Project not found. Please refresh the page.");
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [slug, location.state]);
 
   useEffect(() => { load(); }, [load]);
 
