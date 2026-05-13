@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api, { fileUrl, formatApiErrorDetail } from "../lib/api";
 import { FadeIn, Stagger, StaggerItem } from "../components/Motion";
@@ -23,7 +23,7 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ name: "", bio: "", twitter: "", github: "", website: "", avatar_url: "" });
   const [saving, setSaving] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get(`/users/${username}`);
@@ -41,9 +41,9 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [username]);
 
-  useEffect(() => { load(); }, [username]);
+  useEffect(() => { load(); }, [load]);
 
   const onUpload = async (e) => {
     const file = e.target.files?.[0];

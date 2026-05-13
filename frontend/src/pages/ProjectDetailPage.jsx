@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import api, { fileUrl } from "../lib/api";
 import { FadeIn } from "../components/Motion";
@@ -23,7 +23,7 @@ export default function ProjectDetailPage() {
   const [hasUp, setHasUp] = useState(false);
   const [upCount, setUpCount] = useState(0);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get(`/projects/${slug}`);
@@ -38,9 +38,9 @@ export default function ProjectDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug, navigate]);
 
-  useEffect(() => { load(); }, [slug]);
+  useEffect(() => { load(); }, [load]);
 
   const onUpvote = async () => {
     if (!user) return toast.error("Sign in to upvote");

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../lib/api";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import ProjectCard from "./ProjectCard";
@@ -11,7 +11,7 @@ export default function Leaderboard({ defaultPeriod = "weekly", limit = 10, comp
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const load = async (p) => {
+  const load = useCallback(async (p) => {
     setLoading(true);
     try {
       const { data } = await api.get(`/projects/leaderboard`, { params: { period: p, limit } });
@@ -19,9 +19,9 @@ export default function Leaderboard({ defaultPeriod = "weekly", limit = 10, comp
     } finally {
       setLoading(false);
     }
-  };
+  }, [limit]);
 
-  useEffect(() => { load(period); }, [period]);
+  useEffect(() => { load(period); }, [period, load]);
 
   return (
     <section className="relative" data-testid="leaderboard-section">

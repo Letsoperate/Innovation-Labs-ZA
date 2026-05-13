@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../lib/api";
 import ProjectCard from "../components/ProjectCard";
@@ -17,7 +17,7 @@ export default function DiscoverPage() {
   const sort = params.get("sort") || "trending";
   const [query, setQuery] = useState(params.get("q") || "");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get("/projects", { params: { category, sort, q: query || undefined, limit: 60 } });
@@ -25,10 +25,10 @@ export default function DiscoverPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, sort, query]);
 
   useEffect(() => { api.get("/categories").then((r) => setCategories(r.data)); }, []);
-  useEffect(() => { load(); }, [category, sort]);
+  useEffect(() => { load(); }, [load]);
 
   const onSearch = (e) => {
     e.preventDefault();
