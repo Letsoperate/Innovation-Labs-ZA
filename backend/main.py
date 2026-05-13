@@ -6,6 +6,7 @@ import sqlite3
 import hashlib
 import logging
 import secrets
+import httpx
 import jwt
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -653,6 +654,24 @@ async def categories():
         {"slug": "mobile", "name": "Mobile", "icon": "DeviceMobile"},
         {"slug": "open-source", "name": "Open Source", "icon": "GitBranch"},
     ]
+
+
+# ---------- Website Proxy ----------
+@api_router.get("/proxy")
+async def proxy_website(url: str):
+    try:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+            resp = await client.get(url, headers={"User-Agent": "InnovationLabZA/1.0"})
+            content_type = resp.headers.get("content-type", "text/html")
+            content = resp.content
+            if "text/html" in content_type:
+                html = content.decode("utf-8", errors="replace")
+                base_tag = f'<base href="{url}">'
+                html = html.replace("<head>", f"<head>{base_tag}", 1)
+                content = html.encode("utf-8")
+            return FastResponse(content=content, media_type=content_type)
+    except Exception:
+        raise HTTPException(status_code=502, detail="Failed to proxy website")
 
 
 # ---------- Startup ----------

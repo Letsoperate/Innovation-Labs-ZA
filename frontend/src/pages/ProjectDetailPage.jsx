@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import api, { fileUrl } from "../lib/api";
+import api, { fileUrl, API } from "../lib/api";
 import { FadeIn } from "../components/Motion";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Textarea } from "../components/ui/textarea";
-import { ArrowUp, Eye, ChatCircle, ArrowSquareOut, GithubLogo, TwitterLogo, Globe, ArrowLeft, Monitor } from "@phosphor-icons/react";
+import { ArrowUp, Eye, ChatCircle, ArrowSquareOut, GithubLogo, TwitterLogo, Globe, ArrowLeft, Monitor, Warning } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { Skeleton } from "../components/ui/skeleton";
@@ -91,8 +91,22 @@ export default function ProjectDetailPage() {
           </button>
 
           <div className="flex flex-col sm:flex-row gap-6 items-start">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 border border-border bg-muted overflow-hidden">
-              {project.cover_image_url ? (
+            <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 border border-border bg-white overflow-hidden relative group">
+              {project.website_url ? (
+                <div className="w-full h-full relative">
+                  <iframe
+                    src={`${API}/proxy?url=${encodeURIComponent(project.website_url)}`}
+                    title={project.name}
+                    className="w-[480px] h-[480px] sm:w-[576px] sm:h-[576px] border-0 origin-top-left scale-[0.1667] sm:scale-[0.1667]"
+                    sandbox="allow-scripts allow-same-origin"
+                    loading="lazy"
+                  />
+                  <a href={project.website_url} target="_blank" rel="noreferrer"
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-medium transition-opacity">
+                    Open ↗
+                  </a>
+                </div>
+              ) : project.cover_image_url ? (
                 <img src={fileUrl(project.cover_image_url)} alt={project.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-primary/10 flex items-center justify-center font-heading font-black text-4xl text-primary">
@@ -162,7 +176,7 @@ export default function ProjectDetailPage() {
                       </a>
                     </div>
                     <iframe
-                      src={project.website_url}
+                      src={`${API}/proxy?url=${encodeURIComponent(project.website_url)}`}
                       title={`Preview of ${project.name}`}
                       className="w-full h-[480px] border-0"
                       sandbox="allow-scripts allow-same-origin"
