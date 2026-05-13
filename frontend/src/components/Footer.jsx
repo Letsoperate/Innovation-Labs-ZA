@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { GithubLogo, TwitterLogo, Heart } from "@phosphor-icons/react";
+import { GithubLogo, TwitterLogo } from "@phosphor-icons/react";
 
 export default function Footer() {
   return (
@@ -52,12 +52,10 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <p className="text-white/40 text-xs">© 2026 Innovation Lab ZA. Built for makers, by makers.</p>
-          <p className="text-white/40 text-xs flex items-center gap-1">
-            Made with <Heart size={12} weight="fill" className="text-primary" /> for the indie hacker community.
+          <p className="text-white/40 text-xs">
+            A product of <span className="text-white/70 font-medium">Innovation Labs ZA</span> — empowering South African makers.
           </p>
-        </div>
       </div>
     </footer>
   );

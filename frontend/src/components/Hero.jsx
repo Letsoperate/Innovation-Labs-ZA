@@ -47,7 +47,7 @@ export default function Hero({ stats }) {
             data-testid="hero-badge"
           >
             <Sparkle size={12} weight="fill" className="text-primary" />
-            Built for indie hackers
+            Product Discovery Platform
           </motion.div>
 
           <h1 className="font-heading font-black text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-tighter leading-[0.95]">
