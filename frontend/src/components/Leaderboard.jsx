@@ -6,7 +6,7 @@ import { Stagger, StaggerItem } from "./Motion";
 import { Trophy } from "@phosphor-icons/react";
 import { Skeleton } from "./ui/skeleton";
 
-export default function Leaderboard({ defaultPeriod = "weekly", limit = 10, compact = false }) {
+export default function Leaderboard({ defaultPeriod = "all", limit = 10, compact = false }) {
   const [period, setPeriod] = useState(defaultPeriod);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,14 +40,14 @@ export default function Leaderboard({ defaultPeriod = "weekly", limit = 10, comp
 
         <Tabs value={period} onValueChange={setPeriod}>
           <TabsList className="bg-secondary rounded-sm p-1 h-10" data-testid="leaderboard-period-tabs">
-            <TabsTrigger value="weekly" data-testid="period-weekly" className="rounded-sm data-[state=active]:bg-foreground data-[state=active]:text-background px-4">
-              This week
+            <TabsTrigger value="all" data-testid="period-all" className="rounded-sm data-[state=active]:bg-foreground data-[state=active]:text-background px-4">
+              All time
             </TabsTrigger>
             <TabsTrigger value="monthly" data-testid="period-monthly" className="rounded-sm data-[state=active]:bg-foreground data-[state=active]:text-background px-4">
               This month
             </TabsTrigger>
-            <TabsTrigger value="all" data-testid="period-all" className="rounded-sm data-[state=active]:bg-foreground data-[state=active]:text-background px-4">
-              All time
+            <TabsTrigger value="weekly" data-testid="period-weekly" className="rounded-sm data-[state=active]:bg-foreground data-[state=active]:text-background px-4">
+              This week
             </TabsTrigger>
           </TabsList>
         </Tabs>

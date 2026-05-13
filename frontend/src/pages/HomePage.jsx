@@ -59,7 +59,7 @@ export default function HomePage() {
       <section className="relative py-20 lg:py-28 bg-background border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn>
-            <Leaderboard defaultPeriod="weekly" limit={10} />
+            <Leaderboard defaultPeriod="all" limit={10} />
           </FadeIn>
         </div>
       </section>
