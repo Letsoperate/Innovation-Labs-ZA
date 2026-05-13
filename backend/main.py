@@ -227,10 +227,13 @@ async def get_user(username: str):
 
 @api.post("/projects")
 async def create_project(p: ProjCreate, u: dict = Depends(get_current_user)):
-    pid=str(uuid.uuid4()); slug="-".join(p.name.lower().split())[:60]+"-"+pid[:6]
-    n=datetime.now(timezone.utc).isoformat()
-    await cv_create_project(id=pid,slug=slug,name=p.name,tagline=p.tagline,description=p.description,websiteUrl=p.website_url,githubUrl=p.github_url or "",category=p.category,tags=json.dumps(p.tags),techStack=json.dumps(p.tech_stack),coverImageUrl=p.cover_image_url or "",makerId=u["_id"],createdAt=n)
-    return await cv_get_project(slug)
+    try:
+        pid=str(uuid.uuid4()); slug="-".join(p.name.lower().split())[:60]+"-"+pid[:6]
+        n=datetime.now(timezone.utc).isoformat()
+        await cv_create_project(id=pid,slug=slug,name=p.name,tagline=p.tagline,description=p.description,websiteUrl=p.website_url,githubUrl=p.github_url or "",category=p.category,tags=json.dumps(p.tags),techStack=json.dumps(p.tech_stack),coverImageUrl=p.cover_image_url or "",makerId=u["_id"],createdAt=n)
+        return await cv_get_project(slug)
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
 
 @api.get("/projects")
 async def list_projects(req: Request, sort: str ="recent", category: Optional[str]=None, q: Optional[str]=None, limit: int=50):
