@@ -3,6 +3,7 @@ import api from "../lib/api";
 import Hero from "../components/Hero";
 import Leaderboard from "../components/Leaderboard";
 import ToolsMarquee from "../components/ToolsMarquee";
+import HomeBanners from "../components/HomeBanners";
 import ProjectCard from "../components/ProjectCard";
 import { FadeIn, Stagger, StaggerItem } from "../components/Motion";
 import { ArrowRight, Compass, Code, PaintBrush, Lightning, CurrencyDollar, Users, Cloud, DeviceMobile, GitBranch, Robot, Megaphone, Cube } from "@phosphor-icons/react";
@@ -54,6 +55,8 @@ export default function HomePage() {
 
       {/* Developer tools marquee */}
       <ToolsMarquee />
+
+      <HomeBanners />
 
       {/* Leaderboard */}
       <section className="relative py-20 lg:py-28 bg-background border-t border-border">
