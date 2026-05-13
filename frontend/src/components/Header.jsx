@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import BrowseDropdown from "./BrowseDropdown";
 import { Button } from "./ui/button";
-import { Lightning, MagnifyingGlass, Plus, SignOut, User, List, X, BookmarkSimple, Rocket } from "@phosphor-icons/react";
+import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket } from "@phosphor-icons/react";
 import { useState, useEffect } from "react";
 import {
   DropdownMenu,
@@ -113,9 +113,9 @@ export default function Header() {
               <Button
                 onClick={() => navigate("/register")}
                 data-testid="register-button"
-                className="bg-primary hover:bg-primary/90 text-white rounded-full gap-1"
+                className="bg-primary hover:bg-primary/90 text-white rounded-full"
               >
-                <Lightning size={16} weight="fill" /> Get started
+                Get started
               </Button>
             </div>
           )}
