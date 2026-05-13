@@ -76,7 +76,7 @@ export default function ToolsMarquee() {
             target="_blank"
             rel="noreferrer"
             title={tool.name}
-            className="flex-shrink-0 flex items-center gap-2 px-3 py-2 border border-border/60 hover:border-foreground/30 hover:bg-secondary/30 transition-colors group"
+            className="flex-shrink-0 flex items-center justify-center w-10 h-10 border border-border/40 hover:border-foreground/30 hover:bg-secondary/30 transition-colors"
           >
             <img
               src={`https://cdn.simpleicons.org/${tool.slug}/000000/ffffff`}
@@ -87,9 +87,6 @@ export default function ToolsMarquee() {
                 e.target.style.display = 'none';
               }}
             />
-            <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground whitespace-nowrap">
-              {tool.name}
-            </span>
           </a>
         ))}
       </div>
