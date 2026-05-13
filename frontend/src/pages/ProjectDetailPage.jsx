@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Textarea } from "../components/ui/textarea";
-import { ArrowUp, Eye, ChatCircle, ArrowSquareOut, GithubLogo, TwitterLogo, Globe, ArrowLeft } from "@phosphor-icons/react";
+import { ArrowUp, Eye, ChatCircle, ArrowSquareOut, GithubLogo, TwitterLogo, Globe, ArrowLeft, Monitor } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { Skeleton } from "../components/ui/skeleton";
@@ -143,6 +143,35 @@ export default function ProjectDetailPage() {
                 <h2 className="font-heading font-bold text-2xl mb-4">About</h2>
                 <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
               </section>
+
+              {project.website_url && (
+                <section>
+                  <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">
+                    <Monitor size={22} /> Live Preview
+                  </h2>
+                  <div className="border border-border overflow-hidden bg-white">
+                    <div className="flex items-center gap-1.5 px-3 py-2 bg-secondary/40 border-b border-border">
+                      <div className="flex gap-1">
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                      </div>
+                      <span className="text-xs text-muted-foreground ml-2 truncate max-w-xs">{project.website_url}</span>
+                      <a href={project.website_url} target="_blank" rel="noreferrer" className="ml-auto text-xs text-primary hover:underline flex items-center gap-1">
+                        Open <ArrowSquareOut size={10} />
+                      </a>
+                    </div>
+                    <iframe
+                      src={project.website_url}
+                      title={`Preview of ${project.name}`}
+                      className="w-full h-[480px] border-0"
+                      sandbox="allow-scripts allow-same-origin"
+                      loading="lazy"
+                      data-testid="live-preview-iframe"
+                    />
+                  </div>
+                </section>
+              )}
 
               {project.tech_stack?.length > 0 && (
                 <section>

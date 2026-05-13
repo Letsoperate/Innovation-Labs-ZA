@@ -8,10 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-12">
           <div className="col-span-2">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center font-heading font-black text-lg">
-                L
-              </div>
-              <span className="font-heading font-black text-xl tracking-tight">LaunchLoop</span>
+                <img src="/logo.svg" alt="Innovation Lab ZA" className="h-7 invert" />
             </div>
             <p className="text-white/60 text-sm max-w-sm leading-relaxed">
               The product discovery platform built for indie hackers. Ship in public, get
@@ -56,7 +53,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <p className="text-white/40 text-xs">© 2026 LaunchLoop. Built for makers, by makers.</p>
+          <p className="text-white/40 text-xs">© 2026 Innovation Lab ZA. Built for makers, by makers.</p>
           <p className="text-white/40 text-xs flex items-center gap-1">
             Made with <Heart size={12} weight="fill" className="text-primary" /> for the indie hacker community.
           </p>

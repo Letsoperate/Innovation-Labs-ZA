@@ -124,7 +124,7 @@ export default function HomePage() {
               <span className="text-primary">more than 24 hours</span> of attention.
             </h2>
             <p className="text-base sm:text-lg text-white/60 mt-8 max-w-2xl mx-auto">
-              LaunchLoop is built for sustained discovery. Get on the leaderboard, get found by the right
+              Innovation Lab ZA is built for sustained discovery. Get on the leaderboard, get found by the right
               community, and let your work compound over months — not minutes.
             </p>
             <div className="flex flex-wrap justify-center gap-3 mt-10">

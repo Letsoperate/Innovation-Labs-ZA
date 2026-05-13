@@ -37,10 +37,7 @@ export default function Header() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group" data-testid="logo-link">
-          <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center font-heading font-black text-lg">
-            L
-          </div>
-          <span className="font-heading font-black text-xl tracking-tight">LaunchLoop</span>
+          <img src="/logo.svg" alt="Innovation Lab ZA" className="h-8" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

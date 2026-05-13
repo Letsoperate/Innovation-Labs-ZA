@@ -155,7 +155,8 @@ export default function SubmitProjectPage() {
               <>
                 <h2 className="font-heading font-bold text-xl mb-4">Final touches</h2>
                 <div>
-                  <Label>Cover image</Label>
+                  <Label>Screenshot of your website</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Upload a screenshot of your deployed project.</p>
                   <div className="mt-2 border border-dashed border-border p-6 text-center bg-secondary/30">
                     {form.cover_image_url ? (
                       <div className="relative inline-block">

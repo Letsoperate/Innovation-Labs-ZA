@@ -10,7 +10,6 @@ import logging
 import secrets
 import bcrypt
 import jwt
-import requests
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
@@ -26,18 +25,17 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-app = FastAPI(title="LaunchLoop API")
+app = FastAPI(title="Innovation Lab ZA API")
 api_router = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 JWT_ALGORITHM = "HS256"
-APP_NAME = os.environ.get("APP_NAME", "launchloop")
-STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
-EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
+APP_NAME = os.environ.get("APP_NAME", "innovation-lab-za")
+UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-storage_key: Optional[str] = None
 
 
 # ---------- Auth helpers ----------
@@ -127,40 +125,22 @@ async def get_optional_user(request: Request) -> Optional[dict]:
 
 
 # ---------- Storage helpers ----------
-def init_storage():
-    global storage_key
-    if storage_key:
-        return storage_key
-    if not EMERGENT_KEY:
-        logger.error("EMERGENT_LLM_KEY not set")
-        return None
-    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
-    resp.raise_for_status()
-    storage_key = resp.json()["storage_key"]
-    return storage_key
+def put_object(user_id: str, data: bytes, ext: str) -> dict:
+    file_id = str(uuid.uuid4())
+    filename = f"{file_id}.{ext}"
+    file_dir = UPLOAD_DIR / user_id
+    file_dir.mkdir(parents=True, exist_ok=True)
+    filepath = file_dir / filename
+    filepath.write_bytes(data)
+    return {"path": filename, "user_id": user_id, "size": len(data)}
 
 
-def put_object(path: str, data: bytes, content_type: str) -> dict:
-    key = init_storage()
-    resp = requests.put(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key, "Content-Type": content_type},
-        data=data,
-        timeout=120,
-    )
-    resp.raise_for_status()
-    return resp.json()
-
-
-def get_object(path: str):
-    key = init_storage()
-    resp = requests.get(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key},
-        timeout=60,
-    )
-    resp.raise_for_status()
-    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+def get_object(user_id: str, filename: str):
+    filepath = UPLOAD_DIR / user_id / filename
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    content_type = MIME_TYPES.get(filename.rsplit(".", 1)[-1].lower(), "application/octet-stream")
+    return filepath.read_bytes(), content_type
 
 
 MIME_TYPES = {
@@ -326,20 +306,20 @@ async def upload(file: UploadFile = File(...), user: dict = Depends(get_current_
     data = await file.read()
     if len(data) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large (max 5MB)")
-    path = f"{APP_NAME}/uploads/{user['id']}/{uuid.uuid4()}.{ext}"
-    result = put_object(path, data, content_type)
+    result = put_object(user["id"], data, ext)
+    storage_path = f"{result['user_id']}/{result['path']}"
     file_id = str(uuid.uuid4())
     await db.files.insert_one({
         "id": file_id,
-        "storage_path": result["path"],
+        "storage_path": storage_path,
         "original_filename": file.filename,
         "content_type": content_type,
-        "size": result.get("size", len(data)),
+        "size": result["size"],
         "uploaded_by": user["id"],
         "is_deleted": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
-    return {"id": file_id, "url": f"/api/files/{result['path']}", "path": result["path"]}
+    return {"id": file_id, "url": f"/api/files/{storage_path}", "path": result["path"]}
 
 
 @api_router.get("/files/{path:path}")
@@ -347,7 +327,9 @@ async def serve_file(path: str):
     record = await db.files.find_one({"storage_path": path, "is_deleted": False}, {"_id": 0})
     if not record:
         raise HTTPException(status_code=404, detail="File not found")
-    data, content_type = get_object(path)
+    parts = path.split("/", 1)
+    user_id, filename = parts if len(parts) == 2 else ("unknown", path)
+    data, content_type = get_object(user_id, filename)
     return FastResponse(content=data, media_type=record.get("content_type", content_type))
 
 
@@ -566,7 +548,7 @@ async def categories():
 
 # ---------- Startup ----------
 async def seed_admin():
-    admin_email = os.environ.get("ADMIN_EMAIL", "admin@launchloop.dev")
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@innovationlabza.dev")
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
     existing = await db.users.find_one({"email": admin_email})
     if not existing:
@@ -589,7 +571,7 @@ async def seed_demo_data():
     if await db.projects.count_documents({}) > 0:
         return
     # Create demo maker if not exists
-    demo_email = "demo@launchloop.dev"
+    demo_email = "demo@innovationlabza.dev"
     maker = await db.users.find_one({"email": demo_email})
     if not maker:
         maker_id = str(uuid.uuid4())
@@ -617,6 +599,7 @@ async def seed_demo_data():
         {"name": "ChirpStream", "tagline": "Schedule and analyze your Twitter posts", "category": "marketing", "tags": ["twitter", "social"], "tech_stack": ["Rails", "Vue"], "cover_image_url": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80", "upvotes": 89, "views": 720, "comments": 14},
         {"name": "InkPress", "tagline": "Beautiful blogs for hackers", "category": "saas", "tags": ["blog", "publishing"], "tech_stack": ["Astro", "MDX"], "cover_image_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80", "upvotes": 134, "views": 890, "comments": 21},
         {"name": "NomadGrid", "tagline": "Find coworking spots in 200+ cities", "category": "social", "tags": ["travel", "remote"], "tech_stack": ["Flutter", "Firebase"], "cover_image_url": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80", "upvotes": 67, "views": 480, "comments": 8},
+        {"name": "Predator Bot Market", "tagline": "A marketplace for trading bots and automation tools", "category": "saas", "tags": ["bots", "automation", "marketplace"], "tech_stack": ["React", "Node.js"], "cover_image_url": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80", "website_url": "https://predator-bot-market.netlify.app/", "upvotes": 120, "views": 850, "comments": 16},
     ]
     for d in demo_projects:
         pid = str(uuid.uuid4())
@@ -627,7 +610,7 @@ async def seed_demo_data():
             "name": d["name"],
             "tagline": d["tagline"],
             "description": f"{d['tagline']}. Built for indie hackers who care about craft and shipping.",
-            "website_url": "https://example.com",
+            "website_url": d.get("website_url", "https://example.com"),
             "github_url": "https://github.com",
             "category": d["category"],
             "tags": d["tags"],
@@ -650,11 +633,6 @@ async def startup():
     await db.upvotes.create_index([("project_id", 1), ("user_id", 1)], unique=True)
     await seed_admin()
     await seed_demo_data()
-    try:
-        init_storage()
-        logger.info("Storage initialized")
-    except Exception as e:
-        logger.error(f"Storage init failed: {e}")
 
 
 @app.on_event("shutdown")
@@ -664,7 +642,7 @@ async def shutdown_db_client():
 
 @api_router.get("/")
 async def root():
-    return {"message": "LaunchLoop API", "version": "1.0"}
+    return {"message": "Innovation Lab ZA API", "version": "1.0"}
 
 
 app.include_router(api_router)

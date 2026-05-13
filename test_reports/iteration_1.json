@@ -1,5 +1,5 @@
 {
-  "summary": "Comprehensive testing of LaunchLoop product discovery platform completed. Wrote 22 pytest backend tests covering auth, projects, leaderboard, upvotes, comments, profiles, upload — all 22 passed (100%). Verified frontend home page, leaderboard with period tabs, discover with search/filters, login flow, submit project 3-step form, profile pages. UI loads cleanly with bold typography and seeded demo projects displayed correctly.",
+  "summary": "Comprehensive testing of Innovation Lab ZA product discovery platform completed. Wrote 22 pytest backend tests covering auth, projects, leaderboard, upvotes, comments, profiles, upload — all 22 passed (100%). Verified frontend home page, leaderboard with period tabs, discover with search/filters, login flow, submit project 3-step form, profile pages. UI loads cleanly with bold typography and seeded demo projects displayed correctly.",
   "backend_issues": {
     "critical": [],
     "minor": [
@@ -31,7 +31,7 @@
   ],
   "updated_files": ["/app/backend/tests/backend_test.py", "/app/backend/tests/__init__.py"],
   "success_rate": {"backend": "100% (22/22)", "frontend": "~95%"},
-  "test_credentials": "admin@launchloop.dev / admin123 (admin) and demo@launchloop.dev / demo123 (user) — both verified working via login API and UI",
+  "test_credentials": "admin@innovationlabza.dev / admin123 (admin) and demo@innovationlabza.dev / demo123 (user) — both verified working via login API and UI",
   "seed_data_creation": "Seed data was created by app on startup (1 admin, 1 demo user, 8 demo projects). Additionally TEST_-prefixed users/projects created during pytest run.",
   "retest_needed": false,
   "should_main_agent_self_test": true,

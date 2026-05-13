@@ -1,16 +1,16 @@
-"""LaunchLoop backend API tests"""
+"""Innovation Lab ZA backend API tests"""
 import os
 import uuid
 import io
 import pytest
 import requests
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://startup-spotlight-3.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8000').rstrip('/')
 API = f"{BASE_URL}/api"
 
-ADMIN_EMAIL = "admin@launchloop.dev"
+ADMIN_EMAIL = "admin@innovationlabza.dev"
 ADMIN_PASSWORD = "admin123"
-DEMO_EMAIL = "demo@launchloop.dev"
+DEMO_EMAIL = "demo@innovationlabza.dev"
 DEMO_PASSWORD = "demo123"
 
 
@@ -43,7 +43,7 @@ class TestHealth:
     def test_root(self):
         r = requests.get(f"{API}/", timeout=15)
         assert r.status_code == 200
-        assert "LaunchLoop" in r.json().get("message", "")
+        assert "Innovation Lab ZA" in r.json().get("message", "")
 
 
 # ---------- Auth ----------
