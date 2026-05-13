@@ -35,13 +35,8 @@ export default function RegisterPage() {
     <div className="pt-28 pb-20 min-h-[calc(100vh-4rem)] flex items-center bg-grid">
       <div className="max-w-md mx-auto w-full px-4 sm:px-6">
         <FadeIn>
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-border bg-secondary/60 text-xs uppercase tracking-[0.2em] font-semibold">
-              <Rocket size={12} weight="fill" className="text-primary" /> Join the loop
-            </div>
-            <h1 className="font-heading font-black text-4xl tracking-tighter mt-6">Create account.</h1>
-            <p className="text-muted-foreground mt-2 text-sm">Build your maker profile in seconds.</p>
-          </div>
+          <h1 className="font-heading font-black text-4xl tracking-tighter text-center">Create account.</h1>
+          <p className="text-muted-foreground text-center mt-2 text-sm mb-8">Build your maker profile in seconds.</p>
 
           <form onSubmit={onSubmit} className="space-y-5 border border-border bg-card p-8" data-testid="register-form">
             {error && <div className="px-4 py-3 border border-destructive/40 bg-destructive/5 text-destructive text-sm">{error}</div>}

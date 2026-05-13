@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { FadeIn } from "../components/Motion";
-import { Lightning, GithubLogo } from "@phosphor-icons/react";
+import { GithubLogo } from "@phosphor-icons/react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -44,12 +44,8 @@ export default function LoginPage() {
     <div className="pt-28 pb-20 min-h-[calc(100vh-4rem)] flex items-center bg-grid">
       <div className="max-w-md mx-auto w-full px-4 sm:px-6">
         <FadeIn>
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-border bg-secondary/60 text-xs uppercase tracking-[0.2em] font-semibold rounded-full">
-              <Lightning size={12} weight="fill" className="text-primary" /> Welcome back
-            </div>
-            <h1 className="font-heading font-black text-4xl tracking-tighter mt-6">Log in.</h1>
-          </div>
+          <h1 className="font-heading font-black text-4xl tracking-tighter mt-6 text-center">Log in.</h1>
+          <p className="text-muted-foreground text-center mt-2 text-sm mb-8">Continue with GitHub or use your email.</p>
 
           <form onSubmit={onSubmit} className="space-y-5 border border-border bg-card p-8 rounded-2xl" data-testid="login-form">
             <button type="button" onClick={onGitHubLogin} className="w-full flex items-center justify-center gap-3 h-12 border-2 border-border hover:border-[#24292e] transition-all rounded-full font-semibold text-sm bg-[#24292e] text-white hover:bg-[#1b1f23]">
