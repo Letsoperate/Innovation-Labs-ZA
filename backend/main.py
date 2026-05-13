@@ -60,8 +60,8 @@ def verify_password(p, h):
 def get_jwt_secret(): return os.environ.get("JWT_SECRET", "dev-secret-change-in-production")
 def create_access_token(uid, email):
     return jwt.encode({"sub": uid, "email": email, "exp": datetime.now(timezone.utc) + timedelta(minutes=1440), "type": "access"}, get_jwt_secret(), algorithm=JWT_ALGORITHM)
-def create_refresh_token(uid):
-    return jwt.encode({"sub": uid, "exp": datetime.now(timezone.utc) + timedelta(days=7), "type": "refresh"}, get_jwt_secret(), algorithm=JWT_ALGORITHM)
+def create_refresh_token(uid, email=""):
+    return jwt.encode({"sub": uid, "email": email, "exp": datetime.now(timezone.utc) + timedelta(days=7), "type": "refresh"}, get_jwt_secret(), algorithm=JWT_ALGORITHM)
 def set_cookies(r, at, rt):
     r.set_cookie("access_token", at, httponly=True, secure=False, samesite="lax", max_age=86400, path="/")
     r.set_cookie("refresh_token", rt, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
@@ -78,7 +78,7 @@ async def get_current_user(request: Request):
     try:
         p = jwt.decode(token, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
         if p.get("type") != "access": raise HTTPException(401, "Invalid token type")
-        u = await cv_get_user_by_email(p["sub"])
+        u = await cv_get_user_by_email(p["email"])
         if not u: raise HTTPException(401, "User not found")
         return u
     except jwt.ExpiredSignatureError: raise HTTPException(401, "Token expired")
@@ -140,14 +140,14 @@ async def register(p: RegReq, resp: Response):
     if await cv_get_user_by_username(u): raise HTTPException(400,"Username taken")
     uid=str(uuid.uuid4()); n=datetime.now(timezone.utc).isoformat()
     await cv_create_user(id=uid,email=e,username=u,passwordHash=hash_password(p.password),name=p.name.strip(),role="user",createdAt=n)
-    set_cookies(resp,create_access_token(uid,e),create_refresh_token(uid))
+    set_cookies(resp,create_access_token(uid,e),create_refresh_token(uid,e))
     return serialize_user(await cv_get_user_by_email(e))
 
 @api.post("/auth/login")
 async def login(p: LoginReq, resp: Response):
     e=p.email.lower().strip(); u=await cv_get_user_by_email(e)
     if not u or not verify_password(p.password,u.get("passwordHash","")): raise HTTPException(401,"Invalid email or password")
-    set_cookies(resp,create_access_token(u["_id"],e),create_refresh_token(u["_id"]))
+    set_cookies(resp,create_access_token(u["_id"],e),create_refresh_token(u["_id"],e))
     return serialize_user(u)
 
 @api.post("/auth/logout")
@@ -164,7 +164,7 @@ async def refresh(req: Request, resp: Response):
     try:
         p=jwt.decode(rt,get_jwt_secret(),algorithms=[JWT_ALGORITHM])
         if p.get("type")!="refresh": raise HTTPException(401,"Invalid token")
-        u=await cv_get_user_by_email(p["sub"])
+        u=await cv_get_user_by_email(p["email"])
         if not u: raise HTTPException(401,"User not found")
         resp.set_cookie("access_token",create_access_token(u["_id"],u["email"]),httponly=True,secure=False,samesite="lax",max_age=86400,path="/")
         return {"ok":True}
@@ -199,7 +199,7 @@ async def github_cb(code: str, resp: Response):
         ex=await cv_get_user_by_email(ge)
     fu=os.environ.get("FRONTEND_URL","https://innovation-lab-za.vercel.app")
     rd=RedirectResponse(url=f"{fu}?github_auth=1",status_code=302)
-    set_cookies(rd,create_access_token(ex["_id"],ge),create_refresh_token(ex["_id"]))
+    set_cookies(rd,create_access_token(ex["_id"],ge),create_refresh_token(ex["_id"],ge))
     return rd
 
 @api.patch("/users/me")
