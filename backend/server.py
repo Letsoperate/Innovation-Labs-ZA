@@ -6,24 +6,23 @@ load_dotenv(ROOT_DIR / '.env')
 
 import os
 import uuid
+import json
 import logging
 import secrets
 import bcrypt
 import jwt
+import aiosqlite
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Response, UploadFile, File, Form, Query, Header
 from fastapi.responses import Response as FastResponse
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr
 
 
 # ---------- Setup ----------
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+DB_PATH = os.environ.get("SQLITE_PATH", "/tmp/innovation_lab.db")
 
 app = FastAPI(title="Innovation Lab ZA API")
 api_router = APIRouter(prefix="/api")
@@ -36,6 +35,117 @@ APP_NAME = os.environ.get("APP_NAME", "innovation-lab-za")
 UPLOAD_DIR = ROOT_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+
+def dict_factory(cursor, row):
+    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
+
+
+async def get_db():
+    db = await aiosqlite.connect(str(DB_PATH))
+    db.row_factory = dict_factory
+    await db.execute("PRAGMA journal_mode=WAL")
+    await db.execute("PRAGMA foreign_keys=ON")
+    return db
+
+
+async def query(sql: str, args: tuple = ()):
+    db = await get_db()
+    try:
+        cursor = await db.execute(sql, args)
+        rows = await cursor.fetchall()
+        return rows
+    finally:
+        await db.close()
+
+
+async def query_one(sql: str, args: tuple = ()):
+    rows = await query(sql, args)
+    return rows[0] if rows else None
+
+
+async def execute(sql: str, args: tuple = ()):
+    db = await get_db()
+    try:
+        await db.execute(sql, args)
+        await db.commit()
+    finally:
+        await db.close()
+
+
+SQL_SCHEMA = """
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    name TEXT DEFAULT '',
+    bio TEXT DEFAULT '',
+    avatar_url TEXT,
+    twitter TEXT,
+    github TEXT,
+    website TEXT,
+    role TEXT DEFAULT 'user',
+    created_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY,
+    slug TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    tagline TEXT DEFAULT '',
+    description TEXT DEFAULT '',
+    website_url TEXT DEFAULT '',
+    github_url TEXT DEFAULT '',
+    category TEXT DEFAULT '',
+    tags TEXT DEFAULT '[]',
+    tech_stack TEXT DEFAULT '[]',
+    cover_image_url TEXT DEFAULT '',
+    maker_id TEXT NOT NULL,
+    upvotes_count INTEGER DEFAULT 0,
+    views_count INTEGER DEFAULT 0,
+    comments_count INTEGER DEFAULT 0,
+    created_at TEXT,
+    FOREIGN KEY (maker_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS upvotes (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    created_at TEXT,
+    UNIQUE(project_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS files (
+    id TEXT PRIMARY KEY,
+    storage_path TEXT NOT NULL,
+    original_filename TEXT,
+    content_type TEXT,
+    size INTEGER,
+    uploaded_by TEXT NOT NULL,
+    is_deleted INTEGER DEFAULT 0,
+    created_at TEXT
+);
+"""
+
+
+def parse_json_list(val) -> list:
+    if val is None:
+        return []
+    if isinstance(val, list):
+        return val
+    try:
+        return json.loads(val) if isinstance(val, str) else []
+    except (json.JSONDecodeError, TypeError):
+        return []
 
 
 # ---------- Auth helpers ----------
@@ -51,7 +161,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 def get_jwt_secret() -> str:
-    return os.environ["JWT_SECRET"]
+    return os.environ.get("JWT_SECRET", "dev-secret-change-in-production")
 
 
 def create_access_token(user_id: str, email: str) -> str:
@@ -106,7 +216,7 @@ async def get_current_user(request: Request) -> dict:
         payload = jwt.decode(token, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
         if payload.get("type") != "access":
             raise HTTPException(status_code=401, detail="Invalid token type")
-        user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0})
+        user = await query_one("SELECT * FROM users WHERE id = ?", (payload["sub"],))
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         user.pop("password_hash", None)
@@ -204,28 +314,18 @@ class CommentCreate(BaseModel):
 async def register(payload: RegisterRequest, response: Response):
     email = payload.email.lower().strip()
     username = payload.username.lower().strip()
-    if await db.users.find_one({"email": email}):
+    if await query_one("SELECT id FROM users WHERE email = ?", (email,)):
         raise HTTPException(status_code=400, detail="Email already registered")
-    if await db.users.find_one({"username": username}):
+    if await query_one("SELECT id FROM users WHERE username = ?", (username,)):
         raise HTTPException(status_code=400, detail="Username taken")
 
     user_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
-    user_doc = {
-        "id": user_id,
-        "email": email,
-        "username": username,
-        "password_hash": hash_password(payload.password),
-        "name": payload.name.strip(),
-        "bio": "",
-        "avatar_url": None,
-        "twitter": None,
-        "github": None,
-        "website": None,
-        "role": "user",
-        "created_at": now,
-    }
-    await db.users.insert_one(user_doc)
+    await execute(
+        "INSERT INTO users (id, email, username, password_hash, name, role, created_at) VALUES (?,?,?,?,?,?,?)",
+        (user_id, email, username, hash_password(payload.password), payload.name.strip(), "user", now),
+    )
+    user_doc = await query_one("SELECT * FROM users WHERE id = ?", (user_id,))
     access = create_access_token(user_id, email)
     refresh = create_refresh_token(user_id)
     set_auth_cookies(response, access, refresh)
@@ -235,8 +335,8 @@ async def register(payload: RegisterRequest, response: Response):
 @api_router.post("/auth/login")
 async def login(payload: LoginRequest, response: Response):
     email = payload.email.lower().strip()
-    user = await db.users.find_one({"email": email}, {"_id": 0})
-    if not user or not verify_password(payload.password, user["password_hash"]):
+    user = await query_one("SELECT * FROM users WHERE email = ?", (email,))
+    if not user or not verify_password(payload.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     access = create_access_token(user["id"], email)
     refresh = create_refresh_token(user["id"])
@@ -265,7 +365,7 @@ async def refresh_token(request: Request, response: Response):
         payload = jwt.decode(rt, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Invalid token")
-        user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0})
+        user = await query_one("SELECT * FROM users WHERE id = ?", (payload["sub"],))
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         access = create_access_token(user["id"], user["email"])
@@ -278,19 +378,25 @@ async def refresh_token(request: Request, response: Response):
 # ---------- Profile Endpoints ----------
 @api_router.patch("/users/me")
 async def update_me(payload: UpdateProfileRequest, user: dict = Depends(get_current_user)):
-    update = {k: v for k, v in payload.model_dump().items() if v is not None}
-    if update:
-        await db.users.update_one({"id": user["id"]}, {"$set": update})
-    fresh = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    updates = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if updates:
+        setters = ", ".join(f"{k} = ?" for k in updates)
+        values = list(updates.values()) + [user["id"]]
+        await execute(f"UPDATE users SET {setters} WHERE id = ?", tuple(values))
+    fresh = await query_one("SELECT * FROM users WHERE id = ?", (user["id"],))
     return serialize_user(fresh)
 
 
 @api_router.get("/users/{username}")
 async def get_user(username: str):
-    user = await db.users.find_one({"username": username.lower()}, {"_id": 0, "password_hash": 0})
+    user = await query_one("SELECT * FROM users WHERE username = ?", (username.lower(),))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    projects = await db.projects.find({"maker_id": user["id"]}, {"_id": 0}).to_list(100)
+    user.pop("password_hash", None)
+    projects = await query("SELECT * FROM projects WHERE maker_id = ? ORDER BY created_at DESC", (user["id"],))
+    for p in projects:
+        p["tags"] = parse_json_list(p.get("tags"))
+        p["tech_stack"] = parse_json_list(p.get("tech_stack"))
     return {"user": serialize_user(user), "projects": projects}
 
 
@@ -309,22 +415,17 @@ async def upload(file: UploadFile = File(...), user: dict = Depends(get_current_
     result = put_object(user["id"], data, ext)
     storage_path = f"{result['user_id']}/{result['path']}"
     file_id = str(uuid.uuid4())
-    await db.files.insert_one({
-        "id": file_id,
-        "storage_path": storage_path,
-        "original_filename": file.filename,
-        "content_type": content_type,
-        "size": result["size"],
-        "uploaded_by": user["id"],
-        "is_deleted": False,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    })
+    now = datetime.now(timezone.utc).isoformat()
+    await execute(
+        "INSERT INTO files (id, storage_path, original_filename, content_type, size, uploaded_by, created_at) VALUES (?,?,?,?,?,?,?)",
+        (file_id, storage_path, file.filename, content_type, result["size"], user["id"], now),
+    )
     return {"id": file_id, "url": f"/api/files/{storage_path}", "path": result["path"]}
 
 
 @api_router.get("/files/{path:path}")
 async def serve_file(path: str):
-    record = await db.files.find_one({"storage_path": path, "is_deleted": False}, {"_id": 0})
+    record = await query_one("SELECT * FROM files WHERE storage_path = ? AND is_deleted = 0", (path,))
     if not record:
         raise HTTPException(status_code=404, detail="File not found")
     parts = path.split("/", 1)
@@ -335,17 +436,21 @@ async def serve_file(path: str):
 
 # ---------- Projects ----------
 def project_score(p: dict) -> int:
-    return p.get("upvotes_count", 0) * 3 + p.get("views_count", 0) + p.get("comments_count", 0) * 2
+    return (p.get("upvotes_count", 0) or 0) * 3 + (p.get("views_count", 0) or 0) + (p.get("comments_count", 0) or 0) * 2
 
 
 async def annotate_projects(projects: List[dict], current_user_id: Optional[str]):
     out = []
     for p in projects:
-        maker = await db.users.find_one({"id": p["maker_id"]}, {"_id": 0, "password_hash": 0})
+        maker = await query_one("SELECT * FROM users WHERE id = ?", (p["maker_id"],))
+        if maker:
+            maker.pop("password_hash", None)
         p["maker"] = serialize_user(maker) if maker else None
         p["score"] = project_score(p)
+        p["tags"] = parse_json_list(p.get("tags"))
+        p["tech_stack"] = parse_json_list(p.get("tech_stack"))
         if current_user_id:
-            up = await db.upvotes.find_one({"project_id": p["id"], "user_id": current_user_id})
+            up = await query_one("SELECT id FROM upvotes WHERE project_id = ? AND user_id = ?", (p["id"], current_user_id))
             p["has_upvoted"] = up is not None
         else:
             p["has_upvoted"] = False
@@ -358,27 +463,16 @@ async def create_project(payload: ProjectCreate, user: dict = Depends(get_curren
     pid = str(uuid.uuid4())
     slug = "-".join(payload.name.lower().split())[:60] + "-" + pid[:6]
     now = datetime.now(timezone.utc).isoformat()
-    doc = {
-        "id": pid,
-        "slug": slug,
-        "name": payload.name,
-        "tagline": payload.tagline,
-        "description": payload.description,
-        "website_url": payload.website_url,
-        "github_url": payload.github_url,
-        "category": payload.category,
-        "tags": payload.tags,
-        "tech_stack": payload.tech_stack,
-        "cover_image_url": payload.cover_image_url,
-        "maker_id": user["id"],
-        "upvotes_count": 0,
-        "views_count": 0,
-        "comments_count": 0,
-        "created_at": now,
-    }
-    await db.projects.insert_one(doc)
-    doc.pop("_id", None)
-    return doc
+    tags_json = json.dumps(payload.tags)
+    tech_json = json.dumps(payload.tech_stack)
+    await execute(
+        "INSERT INTO projects (id, slug, name, tagline, description, website_url, github_url, category, tags, tech_stack, cover_image_url, maker_id, upvotes_count, views_count, comments_count, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        (pid, slug, payload.name, payload.tagline, payload.description, payload.website_url, payload.github_url or "", payload.category, tags_json, tech_json, payload.cover_image_url or "", user["id"], 0, 0, 0, now),
+    )
+    project = await query_one("SELECT * FROM projects WHERE id = ?", (pid,))
+    project["tags"] = parse_json_list(project.get("tags"))
+    project["tech_stack"] = parse_json_list(project.get("tech_stack"))
+    return project
 
 
 @api_router.get("/projects")
@@ -389,16 +483,17 @@ async def list_projects(
     q: Optional[str] = None,
     limit: int = 50,
 ):
-    query = {}
+    where = ["1=1"]
+    params = []
     if category and category != "all":
-        query["category"] = category
+        where.append("category = ?")
+        params.append(category)
     if q:
-        query["$or"] = [
-            {"name": {"$regex": q, "$options": "i"}},
-            {"tagline": {"$regex": q, "$options": "i"}},
-            {"tags": {"$regex": q, "$options": "i"}},
-        ]
-    projects = await db.projects.find(query, {"_id": 0}).to_list(limit)
+        where.append("(name LIKE ? OR tagline LIKE ? OR tags LIKE ?)")
+        like = f"%{q}%"
+        params.extend([like, like, like])
+    sql = f"SELECT * FROM projects WHERE {' AND '.join(where)} LIMIT {int(limit)}"
+    projects = await query(sql, tuple(params))
     if sort == "trending":
         projects.sort(key=project_score, reverse=True)
     elif sort == "recent":
@@ -411,16 +506,20 @@ async def list_projects(
 @api_router.get("/projects/leaderboard")
 async def leaderboard(request: Request, period: str = "all", limit: int = 10):
     now = datetime.now(timezone.utc)
-    query = {}
+    where = ["1=1"]
+    params = []
     if period == "weekly":
         cutoff = (now - timedelta(days=7)).isoformat()
-        query["created_at"] = {"$gte": cutoff}
+        where.append("created_at >= ?")
+        params.append(cutoff)
     elif period == "monthly":
         cutoff = (now - timedelta(days=30)).isoformat()
-        query["created_at"] = {"$gte": cutoff}
-    projects = await db.projects.find(query, {"_id": 0}).to_list(500)
+        where.append("created_at >= ?")
+        params.append(cutoff)
+    sql = f"SELECT * FROM projects WHERE {' AND '.join(where)}"
+    projects = await query(sql, tuple(params))
     projects.sort(key=project_score, reverse=True)
-    projects = projects[:limit]
+    projects = projects[:int(limit)]
     cur = await get_optional_user(request)
     projects = await annotate_projects(projects, cur["id"] if cur else None)
     return projects
@@ -428,11 +527,11 @@ async def leaderboard(request: Request, period: str = "all", limit: int = 10):
 
 @api_router.get("/projects/{slug}")
 async def get_project(slug: str, request: Request):
-    p = await db.projects.find_one({"slug": slug}, {"_id": 0})
+    p = await query_one("SELECT * FROM projects WHERE slug = ?", (slug,))
     if not p:
         raise HTTPException(status_code=404, detail="Project not found")
-    await db.projects.update_one({"id": p["id"]}, {"$inc": {"views_count": 1}})
-    p["views_count"] = p.get("views_count", 0) + 1
+    await execute("UPDATE projects SET views_count = views_count + 1 WHERE id = ?", (p["id"],))
+    p["views_count"] = (p.get("views_count", 0) or 0) + 1
     cur = await get_optional_user(request)
     annotated = await annotate_projects([p], cur["id"] if cur else None)
     return annotated[0]
@@ -440,59 +539,67 @@ async def get_project(slug: str, request: Request):
 
 @api_router.patch("/projects/{pid}")
 async def update_project(pid: str, payload: ProjectUpdate, user: dict = Depends(get_current_user)):
-    p = await db.projects.find_one({"id": pid}, {"_id": 0})
+    p = await query_one("SELECT * FROM projects WHERE id = ?", (pid,))
     if not p:
         raise HTTPException(status_code=404, detail="Project not found")
     if p["maker_id"] != user["id"] and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Forbidden")
-    update = {k: v for k, v in payload.model_dump().items() if v is not None}
-    if update:
-        await db.projects.update_one({"id": pid}, {"$set": update})
-    fresh = await db.projects.find_one({"id": pid}, {"_id": 0})
+    updates = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if updates:
+        for k in ["tags", "tech_stack"]:
+            if k in updates and isinstance(updates[k], list):
+                updates[k] = json.dumps(updates[k])
+        setters = ", ".join(f"{k} = ?" for k in updates)
+        values = list(updates.values()) + [pid]
+        await execute(f"UPDATE projects SET {setters} WHERE id = ?", tuple(values))
+    fresh = await query_one("SELECT * FROM projects WHERE id = ?", (pid,))
+    fresh["tags"] = parse_json_list(fresh.get("tags"))
+    fresh["tech_stack"] = parse_json_list(fresh.get("tech_stack"))
     return fresh
 
 
 @api_router.delete("/projects/{pid}")
 async def delete_project(pid: str, user: dict = Depends(get_current_user)):
-    p = await db.projects.find_one({"id": pid}, {"_id": 0})
+    p = await query_one("SELECT * FROM projects WHERE id = ?", (pid,))
     if not p:
         raise HTTPException(status_code=404, detail="Project not found")
     if p["maker_id"] != user["id"] and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Forbidden")
-    await db.projects.delete_one({"id": pid})
-    await db.upvotes.delete_many({"project_id": pid})
-    await db.comments.delete_many({"project_id": pid})
+    await execute("DELETE FROM comments WHERE project_id = ?", (pid,))
+    await execute("DELETE FROM upvotes WHERE project_id = ?", (pid,))
+    await execute("DELETE FROM projects WHERE id = ?", (pid,))
     return {"ok": True}
 
 
 # ---------- Upvotes ----------
 @api_router.post("/projects/{pid}/upvote")
 async def toggle_upvote(pid: str, user: dict = Depends(get_current_user)):
-    p = await db.projects.find_one({"id": pid}, {"_id": 0})
+    p = await query_one("SELECT * FROM projects WHERE id = ?", (pid,))
     if not p:
         raise HTTPException(status_code=404, detail="Project not found")
-    existing = await db.upvotes.find_one({"project_id": pid, "user_id": user["id"]})
+    existing = await query_one("SELECT id FROM upvotes WHERE project_id = ? AND user_id = ?", (pid, user["id"]))
     if existing:
-        await db.upvotes.delete_one({"project_id": pid, "user_id": user["id"]})
-        await db.projects.update_one({"id": pid}, {"$inc": {"upvotes_count": -1}})
-        return {"upvoted": False, "upvotes_count": max(0, p.get("upvotes_count", 0) - 1)}
-    await db.upvotes.insert_one({
-        "id": str(uuid.uuid4()),
-        "project_id": pid,
-        "user_id": user["id"],
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    })
-    await db.projects.update_one({"id": pid}, {"$inc": {"upvotes_count": 1}})
-    return {"upvoted": True, "upvotes_count": p.get("upvotes_count", 0) + 1}
+        await execute("DELETE FROM upvotes WHERE project_id = ? AND user_id = ?", (pid, user["id"]))
+        await execute("UPDATE projects SET upvotes_count = MAX(upvotes_count - 1, 0) WHERE id = ?", (pid,))
+        return {"upvoted": False, "upvotes_count": max(0, (p.get("upvotes_count", 0) or 0) - 1)}
+    now = datetime.now(timezone.utc).isoformat()
+    await execute(
+        "INSERT INTO upvotes (id, project_id, user_id, created_at) VALUES (?,?,?,?)",
+        (str(uuid.uuid4()), pid, user["id"], now),
+    )
+    await execute("UPDATE projects SET upvotes_count = upvotes_count + 1 WHERE id = ?", (pid,))
+    return {"upvoted": True, "upvotes_count": (p.get("upvotes_count", 0) or 0) + 1}
 
 
 # ---------- Comments ----------
 @api_router.get("/projects/{pid}/comments")
 async def get_comments(pid: str):
-    comments = await db.comments.find({"project_id": pid}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    comments = await query("SELECT * FROM comments WHERE project_id = ? ORDER BY created_at DESC", (pid,))
     out = []
     for c in comments:
-        u = await db.users.find_one({"id": c["user_id"]}, {"_id": 0, "password_hash": 0})
+        u = await query_one("SELECT * FROM users WHERE id = ?", (c["user_id"],))
+        if u:
+            u.pop("password_hash", None)
         c["author"] = serialize_user(u) if u else None
         out.append(c)
     return out
@@ -500,33 +607,34 @@ async def get_comments(pid: str):
 
 @api_router.post("/projects/{pid}/comments")
 async def post_comment(pid: str, payload: CommentCreate, user: dict = Depends(get_current_user)):
-    p = await db.projects.find_one({"id": pid}, {"_id": 0})
+    p = await query_one("SELECT * FROM projects WHERE id = ?", (pid,))
     if not p:
         raise HTTPException(status_code=404, detail="Project not found")
     cid = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
-    doc = {
-        "id": cid,
-        "project_id": pid,
-        "user_id": user["id"],
-        "body": payload.body,
-        "created_at": now,
-    }
-    await db.comments.insert_one(doc)
-    await db.projects.update_one({"id": pid}, {"$inc": {"comments_count": 1}})
-    doc.pop("_id", None)
-    doc["author"] = serialize_user(user)
-    return doc
+    await execute(
+        "INSERT INTO comments (id, project_id, user_id, body, created_at) VALUES (?,?,?,?,?)",
+        (cid, pid, user["id"], payload.body, now),
+    )
+    await execute("UPDATE projects SET comments_count = comments_count + 1 WHERE id = ?", (pid,))
+    comment = await query_one("SELECT * FROM comments WHERE id = ?", (cid,))
+    comment["author"] = serialize_user(user)
+    return comment
 
 
 # ---------- Stats ----------
 @api_router.get("/stats")
 async def stats():
-    projects = await db.projects.count_documents({})
-    makers = await db.users.count_documents({})
-    upvotes = await db.upvotes.count_documents({})
-    comments = await db.comments.count_documents({})
-    return {"projects": projects, "makers": makers, "upvotes": upvotes, "comments": comments}
+    p = await query_one("SELECT COUNT(*) as cnt FROM projects")
+    m = await query_one("SELECT COUNT(*) as cnt FROM users")
+    u = await query_one("SELECT COUNT(*) as cnt FROM upvotes")
+    c = await query_one("SELECT COUNT(*) as cnt FROM comments")
+    return {
+        "projects": p["cnt"],
+        "makers": m["cnt"],
+        "upvotes": u["cnt"],
+        "comments": c["cnt"],
+    }
 
 
 @api_router.get("/categories")
@@ -550,46 +658,32 @@ async def categories():
 async def seed_admin():
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@innovationlabza.dev")
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
-    existing = await db.users.find_one({"email": admin_email})
+    existing = await query_one("SELECT * FROM users WHERE email = ?", (admin_email,))
     if not existing:
-        await db.users.insert_one({
-            "id": str(uuid.uuid4()),
-            "email": admin_email,
-            "username": "admin",
-            "password_hash": hash_password(admin_password),
-            "name": "Admin",
-            "bio": "Platform admin",
-            "role": "admin",
-            "avatar_url": None,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        })
-    elif not verify_password(admin_password, existing["password_hash"]):
-        await db.users.update_one({"email": admin_email}, {"$set": {"password_hash": hash_password(admin_password)}})
+        user_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc).isoformat()
+        await execute(
+            "INSERT INTO users (id, email, username, password_hash, name, bio, role, created_at) VALUES (?,?,?,?,?,?,?,?)",
+            (user_id, admin_email, "admin", hash_password(admin_password), "Admin", "Platform admin", "admin", now),
+        )
+    elif not verify_password(admin_password, existing.get("password_hash", "")):
+        await execute("UPDATE users SET password_hash = ? WHERE email = ?", (hash_password(admin_password), admin_email))
 
 
 async def seed_demo_data():
-    if await db.projects.count_documents({}) > 0:
+    count = await query_one("SELECT COUNT(*) as cnt FROM projects")
+    if count["cnt"] > 0:
         return
-    # Create demo maker if not exists
     demo_email = "demo@innovationlabza.dev"
-    maker = await db.users.find_one({"email": demo_email})
+    maker = await query_one("SELECT * FROM users WHERE email = ?", (demo_email,))
     if not maker:
         maker_id = str(uuid.uuid4())
-        maker = {
-            "id": maker_id,
-            "email": demo_email,
-            "username": "demo",
-            "password_hash": hash_password("demo123"),
-            "name": "Demo Maker",
-            "bio": "Building stuff in public.",
-            "role": "user",
-            "avatar_url": None,
-            "twitter": "demo",
-            "github": "demo",
-            "website": "https://example.com",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-        await db.users.insert_one(maker)
+        now = datetime.now(timezone.utc).isoformat()
+        await execute(
+            "INSERT INTO users (id, email, username, password_hash, name, bio, role, twitter, github, website, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            (maker_id, demo_email, "demo", hash_password("demo123"), "Demo Maker", "Building stuff in public.", "user", "demo", "demo", "https://example.com", now),
+        )
+        maker = await query_one("SELECT * FROM users WHERE id = ?", (maker_id,))
     demo_projects = [
         {"name": "Synthwave Notes", "tagline": "Markdown notes with a retro twist", "category": "productivity", "tags": ["notes", "markdown"], "tech_stack": ["React", "FastAPI"], "cover_image_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80", "upvotes": 142, "views": 980, "comments": 18},
         {"name": "PixelForge", "tagline": "Generate UI mockups in seconds", "category": "design", "tags": ["design", "ui"], "tech_stack": ["Next.js", "Tailwind"], "cover_image_url": "https://images.unsplash.com/photo-1561070791-2526d30994b8?auto=format&fit=crop&q=80", "upvotes": 98, "views": 670, "comments": 12},
@@ -604,40 +698,22 @@ async def seed_demo_data():
     for d in demo_projects:
         pid = str(uuid.uuid4())
         slug = "-".join(d["name"].lower().split()) + "-" + pid[:6]
-        await db.projects.insert_one({
-            "id": pid,
-            "slug": slug,
-            "name": d["name"],
-            "tagline": d["tagline"],
-            "description": f"{d['tagline']}. Built for indie hackers who care about craft and shipping.",
-            "website_url": d.get("website_url", "https://example.com"),
-            "github_url": "https://github.com",
-            "category": d["category"],
-            "tags": d["tags"],
-            "tech_stack": d["tech_stack"],
-            "cover_image_url": d["cover_image_url"],
-            "maker_id": maker["id"],
-            "upvotes_count": d["upvotes"],
-            "views_count": d["views"],
-            "comments_count": d["comments"],
-            "created_at": (datetime.now(timezone.utc) - timedelta(days=secrets.randbelow(20))).isoformat(),
-        })
+        now = (datetime.now(timezone.utc) - timedelta(days=secrets.randbelow(20))).isoformat()
+        await execute(
+            "INSERT INTO projects (id, slug, name, tagline, description, website_url, github_url, category, tags, tech_stack, cover_image_url, maker_id, upvotes_count, views_count, comments_count, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (pid, slug, d["name"], d["tagline"], f"{d['tagline']}. Built for indie hackers who care about craft and shipping.", d.get("website_url", "https://example.com"), "https://github.com", d["category"], json.dumps(d["tags"]), json.dumps(d["tech_stack"]), d["cover_image_url"], maker["id"], d["upvotes"], d["views"], d["comments"], now),
+        )
 
 
 @app.on_event("startup")
 async def startup():
-    await db.users.create_index("email", unique=True)
-    await db.users.create_index("username", unique=True)
-    await db.projects.create_index("slug", unique=True)
-    await db.projects.create_index("maker_id")
-    await db.upvotes.create_index([("project_id", 1), ("user_id", 1)], unique=True)
+    for stmt in SQL_SCHEMA.strip().split(";"):
+        stmt = stmt.strip()
+        if stmt and not stmt.startswith("--"):
+            await execute(stmt)
     await seed_admin()
     await seed_demo_data()
-
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+    logger.info("Database initialized and seeded")
 
 
 @api_router.get("/")
