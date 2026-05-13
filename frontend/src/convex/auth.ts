@@ -1,0 +1,63 @@
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+import { Doc, Id } from "./_generated/dataModel";
+
+export const getUser = query({
+  args: { id: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db.query("users").withIndex("email", (q) => q.eq("email", args.id)).first();
+  },
+});
+
+export const getUserByEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db.query("users").withIndex("email", (q) => q.eq("email", args.email)).first();
+  },
+});
+
+export const getUserByUsername = query({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db.query("users").withIndex("username", (q) => q.eq("username", args.username)).first();
+  },
+});
+
+export const createUser = mutation({
+  args: {
+    id: v.string(),
+    email: v.string(),
+    username: v.string(),
+    passwordHash: v.string(),
+    name: v.string(),
+    role: v.string(),
+    bio: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    twitter: v.optional(v.string()),
+    github: v.optional(v.string()),
+    website: v.optional(v.string()),
+    createdAt: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("users", { ...args, bio: args.bio || "", avatarUrl: args.avatarUrl || "", twitter: args.twitter || "", github: args.github || "", website: args.website || "" });
+  },
+});
+
+export const updateUser = mutation({
+  args: {
+    id: v.string(),
+    updates: v.object({
+      name: v.optional(v.string()),
+      bio: v.optional(v.string()),
+      twitter: v.optional(v.string()),
+      github: v.optional(v.string()),
+      website: v.optional(v.string()),
+      avatarUrl: v.optional(v.string()),
+      passwordHash: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.query("users").withIndex("email", (q) => q.eq("email", args.id)).first();
+    if (user) await ctx.db.patch(user._id, args.updates);
+  },
+});
