@@ -79,7 +79,7 @@ export default function ToolsMarquee() {
             className="flex-shrink-0 flex items-center justify-center w-10 h-10 border border-border/40 hover:border-foreground/30 hover:bg-secondary/30 transition-colors"
           >
             <img
-              src={`https://cdn.simpleicons.org/${tool.slug}/000000/ffffff`}
+              src={`https://unpkg.com/simple-icons@13.21.0/icons/${tool.slug}.svg`}
               alt={tool.name}
               className="w-5 h-5"
               loading="lazy"
