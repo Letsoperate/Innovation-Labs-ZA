@@ -52,10 +52,17 @@ export default function Footer() {
           </div>
         </div>
 
-          <p className="text-white/40 text-xs">© 2026 Innovation Lab ZA. Built for makers, by makers.</p>
-          <p className="text-white/40 text-xs">
-            A product of <span className="text-white/70 font-medium">Innovation Labs ZA</span> — empowering South African makers.
-          </p>
+        <div className="mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <p className="text-white/40 text-xs">© 2026 Innovation Lab ZA. Built for makers, by makers.</p>
+            <p className="text-white/40 text-xs mt-1">
+              A product of <span className="text-white/70 font-medium">Innovation Labs ZA</span> — empowering South African makers.
+            </p>
+          </div>
+          <a href="https://github.com/Letsoperate" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors">
+            <GithubLogo size={14} weight="fill" /> We're open for collab → Letsoperate
+          </a>
+        </div>
       </div>
     </footer>
   );

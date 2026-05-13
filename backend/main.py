@@ -158,6 +158,17 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     created_at TEXT,
     UNIQUE(project_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS banners (
+    id TEXT PRIMARY KEY,
+    image_url TEXT NOT NULL,
+    caption TEXT DEFAULT '',
+    link_url TEXT DEFAULT '',
+    position TEXT DEFAULT 'top',
+    sort_order INTEGER DEFAULT 0,
+    created_by TEXT NOT NULL,
+    created_at TEXT
+);
 """
 
 
@@ -833,6 +844,33 @@ async def get_bookmarks(user: dict = Depends(get_current_user)):
         p["tags"] = parse_json_list(p.get("tags"))
         p["tech_stack"] = parse_json_list(p.get("tech_stack"))
     return projects
+
+
+# ---------- Banners ----------
+@api_router.get("/banners")
+async def get_banners():
+    return await query("SELECT * FROM banners ORDER BY sort_order ASC, created_at DESC")
+
+
+@api_router.post("/admin/banners")
+async def create_banner(image_url: str, caption: str = "", link_url: str = "", position: str = "top", user: dict = Depends(get_current_user)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    bid = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    await execute(
+        "INSERT INTO banners (id, image_url, caption, link_url, position, created_by, created_at) VALUES (?,?,?,?,?,?,?)",
+        (bid, image_url, caption, link_url, position, user["id"], now),
+    )
+    return await query_one("SELECT * FROM banners WHERE id = ?", (bid,))
+
+
+@api_router.delete("/admin/banners/{bid}")
+async def delete_banner(bid: str, user: dict = Depends(get_current_user)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    await execute("DELETE FROM banners WHERE id = ?", (bid,))
+    return {"ok": True}
 
 
 # ---------- Stats ----------
