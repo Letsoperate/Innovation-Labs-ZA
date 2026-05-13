@@ -144,12 +144,21 @@ export default function ProjectDetailPage() {
                 <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
               </section>
 
+              {project.cover_image_url && (
+                <section>
+                  <h2 className="font-heading font-bold text-2xl mb-4">Screenshot</h2>
+                  <div className="border border-border overflow-hidden">
+                    <img src={fileUrl(project.cover_image_url)} alt={project.name} className="w-full object-cover max-h-96" />
+                  </div>
+                </section>
+              )}
+
               {project.website_url && (
                 <section>
                   <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">
                     <Monitor size={22} /> Live Preview
                   </h2>
-                  <div className="border border-border overflow-hidden bg-secondary/10">
+                  <div className="border border-border overflow-hidden">
                     <div className="flex items-center gap-1.5 px-3 py-2 bg-secondary/40 border-b border-border">
                       <div className="flex gap-1">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
@@ -158,30 +167,21 @@ export default function ProjectDetailPage() {
                       </div>
                       <span className="text-xs text-muted-foreground ml-2 truncate max-w-xs">{project.website_url}</span>
                       <a href={project.website_url} target="_blank" rel="noreferrer" className="ml-auto text-xs text-primary hover:underline flex items-center gap-1">
-                        Open <ArrowSquareOut size={10} />
+                        Open in new tab <ArrowSquareOut size={10} />
                       </a>
                     </div>
-                    <div className="relative">
-                      <iframe
-                        src={project.website_url}
-                        title={`Preview of ${project.name}`}
-                        className="w-full h-[480px] border-0"
-                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                        loading="lazy"
-                        data-testid="live-preview-iframe"
-                      />
-                      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-background via-transparent to-transparent opacity-0 peer opacity-0">
-                        <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
-                          <p className="text-sm text-muted-foreground mb-3">This site can't be embedded.</p>
-                          <a href={project.website_url} target="_blank" rel="noreferrer">
-                            <Button variant="outline" className="rounded-sm gap-2">
-                              Open in new tab <ArrowSquareOut size={14} />
-                            </Button>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
+                    <iframe
+                      src={project.website_url}
+                      title={`Preview of ${project.name}`}
+                      className="w-full h-[500px] border-0"
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                      loading="lazy"
+                      data-testid="live-preview-iframe"
+                    />
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    If the preview is blank, the site blocks embedding. Use "Open in new tab" above.
+                  </p>
                 </section>
               )}
 
