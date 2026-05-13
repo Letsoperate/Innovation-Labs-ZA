@@ -1,11 +1,27 @@
 import { Link } from "react-router-dom";
-import { ArrowUp, ChatCircle, Eye, ArrowUpRight } from "@phosphor-icons/react";
+import { ArrowUp, ChatCircle, Eye, ArrowUpRight, Crown, Fire, Rocket, Star, Lightning } from "@phosphor-icons/react";
 import { Badge } from "./ui/badge";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import api, { fileUrl } from "../lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+
+const BADGE_ICONS = {
+  crown: Crown,
+  hot: Fire,
+  rising: Lightning,
+  new: Star,
+  fast: Rocket,
+};
+
+const BADGE_COLORS = {
+  crown: "text-yellow-500",
+  hot: "text-red-500",
+  rising: "text-orange-500",
+  new: "text-blue-500",
+  fast: "text-green-500",
+};
 
 export default function ProjectCard({ project, rank, onUpdate }) {
   const { user } = useAuth();
@@ -46,10 +62,18 @@ export default function ProjectCard({ project, rank, onUpdate }) {
       >
         <div className="flex gap-5">
           {rank !== undefined && (
-            <div className="flex-shrink-0 w-10 text-center">
-              <div className="font-heading font-black text-2xl text-muted-foreground/40 leading-none">
-                {String(rank).padStart(2, "0")}
-              </div>
+            <div className="flex-shrink-0 w-10 text-center flex flex-col items-center justify-center">
+              {rank === 1 ? (
+                <Crown size={24} weight="fill" className="text-yellow-500" />
+              ) : rank === 2 ? (
+                <Crown size={22} weight="fill" className="text-slate-400" />
+              ) : rank === 3 ? (
+                <Crown size={20} weight="fill" className="text-amber-700" />
+              ) : (
+                <div className="font-heading font-black text-2xl text-muted-foreground/30 leading-none">
+                  {String(rank).padStart(2, "0")}
+                </div>
+              )}
             </div>
           )}
 
@@ -84,6 +108,14 @@ export default function ProjectCard({ project, rank, onUpdate }) {
                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{project.tagline}</p>
 
                 <div className="flex flex-wrap items-center gap-2 mt-3">
+                  {(project.badges || []).map((b, i) => {
+                    const Icon = BADGE_ICONS[b.type];
+                    return Icon ? (
+                      <span key={i} className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-sm border ${b.color} bg-current/5 border-current/30`}>
+                        <Icon size={12} weight="fill" /> {b.label}
+                      </span>
+                    ) : null;
+                  })}
                   {project.category && (
                     <Badge variant="outline" className="rounded-sm text-xs border-border bg-secondary/50">
                       {project.category}

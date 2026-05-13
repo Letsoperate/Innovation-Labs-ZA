@@ -457,8 +457,45 @@ async def annotate_projects(projects: List[dict], current_user_id: Optional[str]
             p["has_upvoted"] = up is not None
         else:
             p["has_upvoted"] = False
+        p["badges"] = compute_badges(p)
         out.append(p)
     return out
+
+
+def compute_badges(p: dict) -> list:
+    badges = []
+    score = project_score(p)
+    now = datetime.now(timezone.utc)
+    created = p.get("created_at", "")
+    if created:
+        try:
+            created_dt = datetime.fromisoformat(created)
+            days_ago = (now - created_dt).days
+        except (ValueError, TypeError):
+            days_ago = 999
+    else:
+        days_ago = 999
+
+    if score >= 200:
+        badges.append({"type": "hot", "label": "HOT", "color": "bg-red-500"})
+    elif score >= 100:
+        badges.append({"type": "rising", "label": "RISING", "color": "bg-orange-500"})
+    if days_ago <= 3:
+        badges.append({"type": "new", "label": "NEW", "color": "bg-blue-500"})
+    elif days_ago <= 7 and score >= 50:
+        badges.append({"type": "fast", "label": "FAST GROWING", "color": "bg-green-500"})
+    return badges
+
+
+async def apply_crowns(projects: List[dict]):
+    scored = sorted(projects, key=project_score, reverse=True)
+    for i, p in enumerate(scored):
+        if i == 0:
+            p["badges"].insert(0, {"type": "crown", "label": "RANK #1", "color": "bg-yellow-500"})
+        elif i == 1:
+            p["badges"].insert(0, {"type": "crown", "label": "RANK #2", "color": "bg-slate-400"})
+        elif i == 2:
+            p["badges"].insert(0, {"type": "crown", "label": "RANK #3", "color": "bg-amber-700"})
 
 
 @api_router.post("/projects")
@@ -525,6 +562,7 @@ async def leaderboard(request: Request, period: str = "all", limit: int = 10):
     projects = projects[:int(limit)]
     cur = await get_optional_user(request)
     projects = await annotate_projects(projects, cur["id"] if cur else None)
+    await apply_crowns(projects)
     return projects
 
 
