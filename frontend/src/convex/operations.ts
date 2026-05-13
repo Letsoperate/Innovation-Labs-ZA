@@ -105,8 +105,9 @@ export const createBanner = mutation({
 });
 
 export const deleteBanner = mutation({
-  args: { id: v.id("banners") },
+  args: { id: v.string() },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.id);
+    const doc = await ctx.db.query("banners").filter((q) => q.eq(q.field("_id"), args.id)).first();
+    if (doc) await ctx.db.delete(doc._id);
   },
 });

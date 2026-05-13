@@ -46,6 +46,11 @@ async def cv_toggle_upvote(pid, uid):
 async def cv_get_bookmark(pid, uid): return await cv_q("getBookmark", projectId=pid, userId=uid)
 async def cv_toggle_bookmark(pid, uid):
     return await cv_m("toggleBookmark", {"projectId": pid, "userId": uid, "createdAt": datetime.now(timezone.utc).isoformat()})
+async def cv_get_comments(pid): return await cv_q("getComments", projectId=pid) or []
+async def cv_post_comment(pid, uid, body, parent_id=None):
+    args={"projectId":pid,"userId":uid,"body":body,"createdAt":datetime.now(timezone.utc).isoformat()}
+    if parent_id: args["parentId"]=parent_id
+    return await cv_m("postComment", args)
 async def cv_record_view(pid, ip):
     return await cv_m("recordView", {"projectId": pid, "ipAddress": ip, "viewedAt": datetime.now(timezone.utc).isoformat()})
 async def cv_get_banners(): return await cv_q("getBanners") or []
@@ -278,12 +283,28 @@ async def delete_project(pid: str, u: dict = Depends(get_current_user)):
 
 @api.post("/projects/{pid}/upvote")
 async def toggle_upvote(pid: str, u: dict = Depends(get_current_user)):
-    r=await cv_toggle_upvote(pid,u["_id"]); p=await cv_get_project(pid)or{}
+    p=await cv_get_project(pid)
+    if not p: raise HTTPException(404,"Project not found")
+    r=await cv_toggle_upvote(str(p["_id"]),u["_id"])
     return{"upvoted":r.get("upvoted",True),"upvotes_count":p.get("upvotesCount",0)or 0}
 
 @api.post("/projects/{pid}/bookmark")
 async def toggle_bookmark(pid: str, u: dict = Depends(get_current_user)):
-    return await cv_toggle_bookmark(pid,u["_id"])
+    p=await cv_get_project(pid)
+    if not p: raise HTTPException(404,"Project not found")
+    return await cv_toggle_bookmark(str(p["_id"]),u["_id"])
+
+@api.get("/projects/{pid}/comments")
+async def get_comments(pid: str):
+    p=await cv_get_project(pid)
+    if not p: raise HTTPException(404,"Project not found")
+    return await cv_get_comments(str(p["_id"]))
+
+@api.post("/projects/{pid}/comments")
+async def post_comment(pid: str, p: CmtCreate, u: dict = Depends(get_current_user)):
+    pr=await cv_get_project(pid)
+    if not pr: raise HTTPException(404,"Project not found")
+    return await cv_post_comment(str(pr["_id"]),u["_id"],p.body,p.parent_id)
 
 @api.get("/banners")
 async def get_banners(): return await cv_get_banners()

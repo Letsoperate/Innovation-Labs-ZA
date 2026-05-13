@@ -20,6 +20,7 @@ http.route({
         case "getProject": result = await ctx.runQuery(api.projects.getProject, { slug: url.searchParams.get("slug")! }); break;
         case "getUpvote": result = await ctx.runQuery(api.operations.getUpvote, { projectId: url.searchParams.get("projectId")!, userId: url.searchParams.get("userId")! }); break;
         case "getBookmark": result = await ctx.runQuery(api.operations.getBookmark, { projectId: url.searchParams.get("projectId")!, userId: url.searchParams.get("userId")! }); break;
+        case "getComments": result = await ctx.runQuery(api.operations.getComments, { projectId: url.searchParams.get("projectId")! }); break;
         case "getBanners": result = await ctx.runQuery(api.operations.getBanners, {}); break;
         case "stats": {
           const projects = await ctx.runQuery(api.projects.listProjects, { sort: "recent", limit: 9999, category: undefined, q: undefined, makerId: undefined });
