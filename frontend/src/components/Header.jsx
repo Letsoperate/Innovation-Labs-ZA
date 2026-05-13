@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import BrowseDropdown from "./BrowseDropdown";
 import { Button } from "./ui/button";
-import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket } from "@phosphor-icons/react";
+import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket, CaretDown } from "@phosphor-icons/react";
 import { useState, useEffect } from "react";
 import {
   DropdownMenu,
@@ -133,11 +133,21 @@ export default function Header() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden glass border-t border-border/60 px-4 py-4 flex flex-col gap-2">
-          <NavLink to="/" end onClick={() => setMobileOpen(false)} className={({ isActive }) => `py-2 text-sm font-medium ${isActive ? "text-primary" : "text-foreground"}`}>Home</NavLink>
-          <NavLink to="/discover" onClick={() => setMobileOpen(false)} className={({ isActive }) => `py-2 text-sm font-medium ${isActive ? "text-primary" : "text-foreground"}`}>Discover</NavLink>
-          <NavLink to="/leaderboard" onClick={() => setMobileOpen(false)} className={({ isActive }) => `py-2 text-sm font-medium ${isActive ? "text-primary" : "text-foreground"}`}>Leaderboard</NavLink>
-          <NavLink to="/hall-of-fame" onClick={() => setMobileOpen(false)} className={({ isActive }) => `py-2 text-sm font-medium ${isActive ? "text-primary" : "text-foreground"}`}>Hall of Fame</NavLink>
+        <div className="md:hidden glass border-t border-border/60 px-4 py-4 flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-4rem)]">
+          <NavLink to="/" end onClick={() => setMobileOpen(false)} className={({isActive}) => `py-2 text-sm font-medium ${isActive ? "text-primary" : "text-foreground"}`}>Home</NavLink>
+          <details className="group">
+            <summary className="py-2 text-sm font-medium text-muted-foreground cursor-pointer list-none flex items-center gap-1">Browse <CaretDown size={12} className="group-open:rotate-180 transition-transform" /></summary>
+            <div className="pl-4 mt-1 space-y-1 pb-2">
+              <Link to="/discover" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">All Projects</Link>
+              <Link to="/categories" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Categories</Link>
+              <Link to="/hall-of-fame" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Hall of Fame</Link>
+              <Link to="/free-tools" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Free Tools</Link>
+              <Link to="/builders" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Builders</Link>
+              <Link to="/blog" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Blog</Link>
+              <Link to="/faq" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">FAQ</Link>
+              <Link to="/community" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Community</Link>
+            </div>
+          </details>
           {user && (
             <>
               <NavLink to="/submit" onClick={() => setMobileOpen(false)} className="py-2 text-sm font-medium text-primary flex items-center gap-2">

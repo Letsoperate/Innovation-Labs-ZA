@@ -6,7 +6,7 @@ import ToolsMarquee from "../components/ToolsMarquee";
 import HomeBanners from "../components/HomeBanners";
 import ProjectCard from "../components/ProjectCard";
 import { FadeIn, Stagger, StaggerItem } from "../components/Motion";
-import { ArrowRight, Compass, Code, PaintBrush, Lightning, CurrencyDollar, Users, Cloud, DeviceMobile, GitBranch, Robot, Megaphone, Cube } from "@phosphor-icons/react";
+import { ArrowRight, Compass, Code, PaintBrush, Lightning, CurrencyDollar, Users, Cloud, DeviceMobile, GitBranch, Robot, Megaphone } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 
