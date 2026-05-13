@@ -117,32 +117,6 @@ export default function Hero({ stats }) {
               </Button>
             </Link>
           </motion.div>
-
-          {stats && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-12 mt-16 pt-10 border-t border-border"
-              data-testid="hero-stats"
-            >
-              {[
-                { label: "Projects", value: stats.projects },
-                { label: "Makers", value: stats.makers },
-                { label: "Upvotes", value: stats.upvotes },
-                { label: "Comments", value: stats.comments },
-              ].map((s) => (
-                <div key={s.label}>
-                  <div className="font-heading font-black text-3xl sm:text-4xl tracking-tight">
-                    {s.value.toLocaleString()}
-                  </div>
-                  <div className="text-xs uppercase tracking-[0.2em] font-semibold text-muted-foreground mt-1">
-                    {s.label}
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          )}
         </motion.div>
       </div>
     </section>

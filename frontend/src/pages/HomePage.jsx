@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import api from "../lib/api";
 import Hero from "../components/Hero";
 import Leaderboard from "../components/Leaderboard";
+import ToolsMarquee from "../components/ToolsMarquee";
 import ProjectCard from "../components/ProjectCard";
 import { FadeIn, Stagger, StaggerItem } from "../components/Motion";
-import { ArrowRight, Compass, Code, PaintBrush, Lightning, CurrencyDollar, Users, Cloud, DeviceMobile, GitBranch, Robot, Megaphone } from "@phosphor-icons/react";
+import { ArrowRight, Compass, Code, PaintBrush, Lightning, CurrencyDollar, Users, Cloud, DeviceMobile, GitBranch, Robot, Megaphone, Cube } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 
@@ -28,6 +29,31 @@ export default function HomePage() {
   return (
     <>
       <Hero stats={stats} />
+
+      {/* Stats bar */}
+      <div className="border-t border-border bg-secondary/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <FadeIn>
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-1">
+              {[
+                { label: "Projects", value: stats.projects },
+                { label: "Makers", value: stats.makers },
+                { label: "Upvotes", value: stats.upvotes },
+                { label: "Comments", value: stats.comments },
+              ].map((s, i) => (
+                <span key={s.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="font-heading font-bold text-sm text-foreground">{s.value.toLocaleString()}</span>
+                  {s.label}
+                  {i < 3 && <span className="text-border ml-6 hidden sm:inline">|</span>}
+                </span>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </div>
+
+      {/* Developer tools marquee */}
+      <ToolsMarquee />
 
       {/* Leaderboard */}
       <section className="relative py-20 lg:py-28 bg-background border-t border-border">
