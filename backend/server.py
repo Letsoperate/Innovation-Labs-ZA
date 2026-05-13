@@ -7,11 +7,12 @@ load_dotenv(ROOT_DIR / '.env')
 import os
 import uuid
 import json
+import asyncio
+import sqlite3
 import logging
 import secrets
 import bcrypt
 import jwt
-import aiosqlite
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
@@ -36,26 +37,25 @@ UPLOAD_DIR = ROOT_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def dict_factory(cursor, row):
-    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
-
-
-async def get_db():
-    db = await aiosqlite.connect(str(DB_PATH))
-    db.row_factory = dict_factory
-    await db.execute("PRAGMA journal_mode=WAL")
-    await db.execute("PRAGMA foreign_keys=ON")
-    return db
+def get_db():
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")
+    conn.execute("PRAGMA busy_timeout=5000")
+    return conn
 
 
 async def query(sql: str, args: tuple = ()):
-    db = await get_db()
-    try:
-        cursor = await db.execute(sql, args)
-        rows = await cursor.fetchall()
-        return rows
-    finally:
-        await db.close()
+    def _run():
+        conn = get_db()
+        try:
+            cur = conn.execute(sql, args)
+            rows = [dict(r) for r in cur.fetchall()]
+            return rows
+        finally:
+            conn.close()
+    return await asyncio.to_thread(_run)
 
 
 async def query_one(sql: str, args: tuple = ()):
@@ -64,12 +64,14 @@ async def query_one(sql: str, args: tuple = ()):
 
 
 async def execute(sql: str, args: tuple = ()):
-    db = await get_db()
-    try:
-        await db.execute(sql, args)
-        await db.commit()
-    finally:
-        await db.close()
+    def _run():
+        conn = get_db()
+        try:
+            conn.execute(sql, args)
+            conn.commit()
+        finally:
+            conn.close()
+    await asyncio.to_thread(_run)
 
 
 SQL_SCHEMA = """
@@ -639,7 +641,7 @@ async def stats():
 
 @api_router.get("/categories")
 async def categories():
-    cats = [
+    return [
         {"slug": "ai", "name": "AI & ML", "icon": "Robot"},
         {"slug": "developer-tools", "name": "Developer Tools", "icon": "Code"},
         {"slug": "productivity", "name": "Productivity", "icon": "Lightning"},
@@ -651,7 +653,6 @@ async def categories():
         {"slug": "mobile", "name": "Mobile", "icon": "DeviceMobile"},
         {"slug": "open-source", "name": "Open Source", "icon": "GitBranch"},
     ]
-    return cats
 
 
 # ---------- Startup ----------
@@ -713,7 +714,7 @@ async def startup():
             await execute(stmt)
     await seed_admin()
     await seed_demo_data()
-    logger.info("Database initialized and seeded")
+    logger.info("SQLite database initialized and seeded")
 
 
 @api_router.get("/")
