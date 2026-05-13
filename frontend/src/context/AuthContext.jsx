@@ -20,6 +20,11 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     refresh();
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("github_auth")) {
+      window.history.replaceState({}, "", "/");
+      setTimeout(() => refresh(), 500);
+    }
   }, [refresh]);
 
   const login = async (email, password) => {
