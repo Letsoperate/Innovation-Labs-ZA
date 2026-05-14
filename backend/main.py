@@ -1,4 +1,4 @@
-import os, uuid, json, hashlib, logging, secrets, httpx, jwt
+import os, uuid, json, hashlib, logging, secrets, httpx, jwt, time
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Response, UploadFile, File
@@ -290,11 +290,18 @@ async def delete_project(pid: str, u: dict = Depends(get_current_user)):
     if p.get("makerId")!=u["_id"]and u.get("role")!="admin": raise HTTPException(403,"Forbidden")
     await cv_delete_project(pid); return {"ok":True}
 
+_last_vote = {}
+
 @api.post("/projects/{pid}/upvote")
 async def toggle_upvote(pid: str, u: dict = Depends(get_current_user)):
+    now = time.time()
+    uid = u["_id"]
+    if uid in _last_vote and now - _last_vote[uid] < 3:
+        raise HTTPException(429, "Too fast — wait 3 seconds between votes")
+    _last_vote[uid] = now
     p=await cv_get_project(pid)
     if not p: raise HTTPException(404,"Project not found")
-    r=await cv_toggle_upvote(str(p["_id"]),u["_id"])
+    r=await cv_toggle_upvote(str(p["_id"]),uid)
     return{"upvoted":r.get("upvoted",True),"upvotes_count":p.get("upvotesCount",0)or 0}
 
 @api.post("/projects/{pid}/bookmark")

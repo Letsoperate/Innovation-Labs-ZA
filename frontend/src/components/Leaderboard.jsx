@@ -23,6 +23,11 @@ export default function Leaderboard({ defaultPeriod = "all", limit = 10, compact
 
   useEffect(() => { load(period); }, [period, load]);
 
+  useEffect(() => {
+    const iv = setInterval(() => load(period), 15000);
+    return () => clearInterval(iv);
+  }, [period, load]);
+
   return (
     <section className="relative" data-testid="leaderboard-section">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
