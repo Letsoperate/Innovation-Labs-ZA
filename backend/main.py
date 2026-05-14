@@ -2,7 +2,7 @@ import os, uuid, json, hashlib, logging, secrets, httpx, jwt
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Response, UploadFile, File
-from fastapi.responses import Response as FastResponse, RedirectResponse
+from fastapi.responses import Response as FastResponse, RedirectResponse, Response
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -333,15 +333,16 @@ async def delete_banner(bid: str, u: dict = Depends(get_current_user)):
 @api.get("/proxy")
 async def proxy(url: str):
     try:
-        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
-            r = await c.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        async with httpx.AsyncClient(timeout=20, follow_redirects=True) as c:
+            r = await c.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"})
             ct = r.headers.get("content-type", "text/html")
+            headers = {"X-Frame-Options": "ALLOWALL", "Content-Security-Policy": ""}
             content = r.content
             if "text/html" in ct:
                 html = content.decode("utf-8", errors="replace")
                 html = html.replace("<head>", f'<head><base href="{url}">', 1)
                 content = html.encode("utf-8")
-            return FastResponse(content=content, media_type=ct)
+            return Response(content=content, media_type=ct, headers=headers)
     except Exception as e:
         raise HTTPException(502, f"Proxy failed: {e}")
 

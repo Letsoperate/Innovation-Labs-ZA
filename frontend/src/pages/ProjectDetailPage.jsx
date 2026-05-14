@@ -174,7 +174,7 @@ export default function ProjectDetailPage() {
                       src={`/_/backend/api/proxy?url=${encodeURIComponent(project.website_url)}`}
                       title={`Preview of ${project.name}`}
                       className="w-full h-[500px] border-0"
-                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-downloads allow-storage-access-by-user-activation"
                       loading="lazy"
                       data-testid="live-preview-iframe"
                     />
