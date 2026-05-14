@@ -126,7 +126,7 @@ export default function Header() {
               <Link to="/discover" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">All Projects</Link>
               <Link to="/categories" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Categories</Link>
               <Link to="/hall-of-fame" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Hall of Fame</Link>
-              <Link to="/free-tools" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Free Tools</Link>
+              <Link to="/tools" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Tools</Link>
               <Link to="/builders" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Builders</Link>
               <Link to="/blog" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">Blog</Link>
               <Link to="/faq" onClick={() => setMobileOpen(false)} className="block py-1.5 text-sm text-muted-foreground hover:text-foreground">FAQ</Link>

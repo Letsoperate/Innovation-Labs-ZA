@@ -330,6 +330,25 @@ async def delete_banner(bid: str, u: dict = Depends(get_current_user)):
     if u.get("role")!="admin": raise HTTPException(403,"Admin only")
     await cv_delete_banner(bid); return{"ok":True}
 
+@api.get("/community/channels")
+async def list_channels():
+    r=await cv_q("listChannels") or []
+    return r
+
+@api.get("/community/posts")
+async def list_posts(channel: str="", sort: str="new", limit: int=50):
+    p={"type":"listPosts","sort":sort,"limit":str(limit)}
+    if channel: p["channel"]=channel
+    return await cv_q("query",**p) or []
+
+@api.post("/community/posts")
+async def create_post(title: str, body: str, channel_slug: str, u: dict = Depends(get_current_user)):
+    return await cv_m("createPost",{"title":title,"body":body,"channelSlug":channel_slug,"userId":u["_id"],"createdAt":datetime.now(timezone.utc).isoformat()})
+
+@api.post("/community/posts/{pid}/vote")
+async def vote_post(pid: str, vote: int, u: dict = Depends(get_current_user)):
+    return await cv_m("votePost",{"postId":pid,"userId":u["_id"],"vote":vote,"createdAt":datetime.now(timezone.utc).isoformat()})
+
 @api.get("/proxy")
 async def proxy(url: str):
     try:
@@ -386,6 +405,14 @@ async def seed():
                 pid=str(uuid.uuid4());slug="-".join(d["name"].lower().split())+"-"+pid[:6]
                 await cv_create_project(id=pid,slug=slug,name=d["name"],tagline=d["tagline"],description=f"{d['tagline']}. Built for indie hackers.",websiteUrl=d.get("websiteUrl","https://example.com"),githubUrl="https://github.com",category=d["category"],tags=d["tags"],techStack=d["techStack"],coverImageUrl=d["coverImageUrl"],makerId=mid,createdAt=(datetime.now(timezone.utc)-timedelta(days=secrets.randbelow(20))).isoformat())
             logger.info("Demo data seeded")
+        ch=await cv_q("listChannels")or[]
+        if not ch:
+            n=datetime.now(timezone.utc).isoformat()
+            admin_user = await cv_get_user_by_email("admin@innovationlabza.dev")
+            uid = admin_user["_id"] if admin_user else ""
+            for c in[{"name":"General","slug":"general","description":"General discussion","color":"6366f1","icon":"general"},{"name":"Showcase","slug":"showcase","description":"Show off your projects","color":"f59e0b","icon":"showcase"},{"name":"Feedback","slug":"feedback","description":"Give and get feedback","color":"10b981","icon":"feedback"},{"name":"Hackathons","slug":"hackathons","description":"Hackathon talk","color":"ef4444","icon":"hackathons"},{"name":"Jobs","slug":"jobs","description":"Job postings","color":"8b5cf6","icon":"jobs"},{"name":"Random","slug":"random","description":"Random stuff","color":"06b6d4","icon":"random"}]:
+                await cv_m("createChannel",{**c,"createdBy":uid,"createdAt":n})
+            logger.info("Channels seeded")
     except Exception as e:
         logger.error(f"Seed error (non-fatal): {e}")
 

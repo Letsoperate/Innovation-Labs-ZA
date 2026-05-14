@@ -87,4 +87,33 @@ export default defineSchema({
     createdBy: v.string(),
     createdAt: v.string(),
   }),
+
+  channels: defineTable({
+    name: v.string(),
+    slug: v.string(),
+    description: v.string(),
+    color: v.string(),
+    icon: v.string(),
+    postCount: v.number(),
+    createdBy: v.string(),
+    createdAt: v.string(),
+  }).index("slug", ["slug"]),
+
+  posts: defineTable({
+    title: v.string(),
+    body: v.string(),
+    channelSlug: v.string(),
+    userId: v.string(),
+    upvotes: v.number(),
+    downvotes: v.number(),
+    commentCount: v.number(),
+    createdAt: v.string(),
+  }).index("channel", ["channelSlug"]),
+
+  postVotes: defineTable({
+    postId: v.string(),
+    userId: v.string(),
+    vote: v.number(),
+    createdAt: v.string(),
+  }).index("postUser", ["postId", "userId"]),
 });

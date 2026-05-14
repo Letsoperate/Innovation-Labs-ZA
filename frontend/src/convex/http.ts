@@ -22,6 +22,9 @@ http.route({
         case "getBookmark": result = await ctx.runQuery(api.operations.getBookmark, { projectId: url.searchParams.get("projectId")!, userId: url.searchParams.get("userId")! }); break;
         case "getComments": result = await ctx.runQuery(api.operations.getComments, { projectId: url.searchParams.get("projectId")! }); break;
         case "getBanners": result = await ctx.runQuery(api.operations.getBanners, {}); break;
+        case "listChannels": result = await ctx.runQuery(api.community.listChannels, {}); break;
+        case "listPosts": result = await ctx.runQuery(api.community.listPosts, { channelSlug: url.searchParams.get("channel") || undefined, sort: url.searchParams.get("sort") || "new", limit: parseInt(url.searchParams.get("limit") || "50") }); break;
+        case "getPost": result = await ctx.runQuery(api.community.getPost, { id: url.searchParams.get("id")! }); break;
         case "stats": {
           const projects = await ctx.runQuery(api.projects.listProjects, { sort: "recent", limit: 9999, category: undefined, q: undefined, makerId: undefined });
           result = { projects: projects.length, makers: 0, upvotes: 0, comments: 0 };
@@ -57,6 +60,9 @@ http.route({
         case "toggleBookmark": result = await ctx.runMutation(api.operations.toggleBookmark, args); break;
         case "createBanner": result = await ctx.runMutation(api.operations.createBanner, args); break;
         case "deleteBanner": result = await ctx.runMutation(api.operations.deleteBanner, args); break;
+        case "createPost": result = await ctx.runMutation(api.community.createPost, args); break;
+        case "createChannel": result = await ctx.runMutation(api.community.createChannel, args); break;
+        case "votePost": result = await ctx.runMutation(api.community.votePost, args); break;
         default: return new Response(JSON.stringify({ error: "unknown mutation" }), { status: 400, headers: { "Content-Type": "application/json" } });
       }
       return new Response(JSON.stringify(result ?? { ok: true }), { headers: { "Content-Type": "application/json" } });

@@ -15,7 +15,7 @@ const SECTIONS = [
   {
     heading: "Tools",
     items: [
-      { icon: Toolbox, label: "Free Tools", to: "/free-tools" },
+      { icon: Toolbox, label: "Tools", to: "/tools" },
       { icon: Monitor, label: "Platforms", to: "/discover?category=developer-tools" },
       { icon: Trophy, label: "Hall of Fame", to: "/hall-of-fame" },
       { icon: ArrowsLeftRight, label: "Alternatives", to: "/alternatives" },

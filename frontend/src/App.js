@@ -15,7 +15,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import BuildersPage from "./pages/BuildersPage";
-import FreeToolsPage from "./pages/FreeToolsPage";
+import ToolsPage from "./pages/ToolsPage";
 import AlternativesPage from "./pages/AlternativesPage";
 import BlogPage from "./pages/BlogPage";
 import NewsletterPage from "./pages/NewsletterPage";
@@ -43,7 +43,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/builders" element={<BuildersPage />} />
-            <Route path="/free-tools" element={<FreeToolsPage />} />
+            <Route path="/tools" element={<ToolsPage />} />
             <Route path="/alternatives" element={<AlternativesPage />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/newsletter" element={<NewsletterPage />} />
