@@ -84,3 +84,27 @@ export const votePost = mutation({
     return { voted: true };
   },
 });
+
+export const createPostComment = mutation({
+  args: { postId: v.string(), userId: v.string(), body: v.string(), parentId: v.optional(v.string()), createdAt: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("comments", { projectId: args.postId, userId: args.userId, parentId: args.parentId, body: args.body, likesCount: 0, createdAt: args.createdAt });
+    const post = await ctx.db.query("posts").filter((q) => q.eq(q.field("_id"), args.postId)).first();
+    if (post) await ctx.db.patch(post._id, { commentCount: (post.commentCount || 0) + 1 });
+  },
+});
+
+export const listPostComments = query({
+  args: { postId: v.string() },
+  handler: async (ctx, args) => {
+    const all = await ctx.db.query("comments").withIndex("projectId", (q) => q.eq("projectId", args.postId)).order("desc").collect();
+    const top = all.filter((c) => !c.parentId);
+    const out = [];
+    for (const c of top) {
+      const user = await ctx.db.query("users").withIndex("email", (q) => q.eq("email", c.userId)).first();
+      const replies = all.filter((r) => r.parentId === c._id);
+      out.push({ ...c, author: user ? { username: user.username, name: user.name, avatarUrl: user.avatarUrl } : null, replies: replies.map((r) => ({ ...r, author: null })) });
+    }
+    return out;
+  },
+});

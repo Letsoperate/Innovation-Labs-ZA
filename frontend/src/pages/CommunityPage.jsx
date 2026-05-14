@@ -8,9 +8,10 @@ import { Textarea } from "../components/ui/textarea";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import {
-  ChatCircle, ArrowUp, ArrowDown, Plus, Hash, Compass, Lightning, Trophy, Users, Rocket, Note, X
+  Plus, Hash, Compass, Lightning, Trophy, Users, Rocket, Note, X
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import PostCard from "../components/PostCard";
 
 const CHANNEL_ICONS = { general: Compass, showcase: Trophy, feedback: ChatCircle, hackathons: Lightning, jobs: Rocket, random: Note };
 
@@ -151,30 +152,7 @@ export default function CommunityPage() {
                   const score = (post.upvotes || 0) - (post.downvotes || 0);
                   return (
                     <StaggerItem key={post._id}>
-                      <div className="border border-border rounded-2xl p-4 hover:border-foreground/20 transition-colors bg-card">
-                        <div className="flex gap-3">
-                          <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                            <button onClick={() => onVote(post._id, 1)} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-orange-100 hover:text-orange-500 transition-colors"><ArrowUp size={14} weight="bold" /></button>
-                            <span className={`text-xs font-bold ${score > 0 ? "text-orange-500" : score < 0 ? "text-blue-500" : "text-muted-foreground"}`}>{score}</span>
-                            <button onClick={() => onVote(post._id, -1)} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-blue-100 hover:text-blue-500 transition-colors"><ArrowDown size={14} weight="bold" /></button>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                              {channels.find((c) => c.slug === post.channelSlug) && (
-                                <span className="inline-flex items-center gap-1 text-primary font-medium">
-                                  <Hash size={10} /> {channels.find((c) => c.slug === post.channelSlug).name}
-                                </span>
-                              )}
-                              <span>Posted by @...</span>
-                            </div>
-                            <h3 className="font-heading font-bold text-base leading-tight">{post.title}</h3>
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.body}</p>
-                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1"><ChatCircle size={12} /> {post.commentCount || 0} comments</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <PostCard post={post} score={score} channels={channels} onVote={onVote} load={load} user={user} />
                     </StaggerItem>
                   );
                 })}

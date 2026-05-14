@@ -364,6 +364,16 @@ async def create_post(title: str, body: str, channel_slug: str, u: dict = Depend
 async def vote_post(pid: str, vote: int, u: dict = Depends(get_current_user)):
     return await cv_m("votePost",{"postId":pid,"userId":u["_id"],"vote":vote,"createdAt":datetime.now(timezone.utc).isoformat()})
 
+@api.get("/community/posts/{pid}/comments")
+async def get_post_comments(pid: str):
+    return await cv_q("listPostComments", postId=pid) or []
+
+@api.post("/community/posts/{pid}/comments")
+async def post_comment(pid: str, body: str, parent_id: str = "", u: dict = Depends(get_current_user)):
+    args={"postId":pid,"userId":u["_id"],"body":body,"createdAt":datetime.now(timezone.utc).isoformat()}
+    if parent_id: args["parentId"]=parent_id
+    return await cv_m("createPostComment",args)
+
 @api.get("/og/project/{slug}")
 async def og_project(slug: str):
     p=await cv_get_project(slug)
