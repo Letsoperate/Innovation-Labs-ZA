@@ -349,7 +349,34 @@ async def create_post(title: str, body: str, channel_slug: str, u: dict = Depend
 async def vote_post(pid: str, vote: int, u: dict = Depends(get_current_user)):
     return await cv_m("votePost",{"postId":pid,"userId":u["_id"],"vote":vote,"createdAt":datetime.now(timezone.utc).isoformat()})
 
-@api.get("/proxy")
+@api.get("/og/project/{slug}")
+async def og_project(slug: str):
+    p=await cv_get_project(slug)
+    if not p: raise HTTPException(404,"Project not found")
+    name=p.get("name","Project")
+    desc=p.get("tagline","") or p.get("description","")
+    img=p.get("coverImageUrl","") or p.get("cover_image_url","")
+    url=f"https://innovation-lab-za.vercel.app/p/{slug}"
+    html=f"""<!doctype html><html><head>
+<meta charset="utf-8"/>
+<title>{name} - Innovation Lab ZA</title>
+<meta name="description" content="{desc}"/>
+<meta property="og:title" content="{name}"/>
+<meta property="og:description" content="{desc}"/>
+<meta property="og:image" content="{img}"/>
+<meta property="og:url" content="{url}"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Innovation Lab ZA"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="{name}"/>
+<meta name="twitter:description" content="{desc}"/>
+<meta name="twitter:image" content="{img}"/>
+<meta http-equiv="refresh" content="0;url={url}"/>
+</head><body>
+<h1>{name}</h1><p>{desc}</p>
+<p><a href="{url}">View on Innovation Lab ZA</a></p>
+</body></html>"""
+    return Response(content=html, media_type="text/html")
 async def proxy(url: str):
     try:
         async with httpx.AsyncClient(timeout=20, follow_redirects=True) as c:

@@ -40,6 +40,14 @@ export default function ProjectDetailPage() {
       setProject(data);
       setHasUp(!!data.has_upvoted);
       setUpCount(data.upvotes_count);
+      document.title = `${data.name} - Innovation Lab ZA`;
+      const og = (p,v) => { const m=document.querySelector(`meta[property="${p}"]`); if(m) m.setAttribute("content",v); };
+      og("og:title", data.name);
+      og("og:description", data.tagline || "");
+      og("og:image", data.cover_image_url || data.coverImageUrl || "");
+      og("og:url", window.location.href);
+      const tc = document.querySelector('meta[name="twitter:card"]');
+      if (tc) tc.setAttribute("content", "summary_large_image");
       const c = await api.get(`/projects/${data.id}/comments`);
       setComments(c.data);
     } catch {
