@@ -31,30 +31,32 @@ const DEV_TOOLS = [
   { name: "Vite", url: "https://vitejs.dev", desc: "Frontend build tool", tags: ["tooling","bundler"] },
 ];
 
-const AI_MODELS = [
-  { name: "GPT-4o", maker: "OpenAI", url: "https://chatgpt.com", desc: "Multimodal flagship model", yt: "https://youtube.com/@OpenAI", tw: "https://twitter.com/OpenAI" },
-  { name: "GPT-4o Mini", maker: "OpenAI", url: "https://chatgpt.com", desc: "Lightweight affordable AI", yt: "https://youtube.com/@OpenAI", tw: "https://twitter.com/OpenAI" },
-  { name: "Claude 3.5 Sonnet", maker: "Anthropic", url: "https://claude.ai", desc: "Safe helpful AI assistant", yt: "https://youtube.com/@AnthropicAI", tw: "https://twitter.com/AnthropicAI" },
-  { name: "Claude 3 Haiku", maker: "Anthropic", url: "https://claude.ai", desc: "Fast affordable model", yt: "https://youtube.com/@AnthropicAI", tw: "https://twitter.com/AnthropicAI" },
-  { name: "Gemini 1.5 Pro", maker: "Google DeepMind", url: "https://gemini.google.com", desc: "Google's multimodal AI", yt: "https://youtube.com/@GoogleDeepMind", tw: "https://twitter.com/GoogleDeepMind" },
-  { name: "Gemini 1.5 Flash", maker: "Google DeepMind", url: "https://gemini.google.com", desc: "Fast efficient AI", yt: "https://youtube.com/@GoogleDeepMind", tw: "https://twitter.com/GoogleDeepMind" },
-  { name: "Llama 3", maker: "Meta", url: "https://llama.meta.com", desc: "Open source LLM", yt: "https://youtube.com/@Meta", tw: "https://twitter.com/Meta" },
-  { name: "Mistral Large", maker: "Mistral AI", url: "https://mistral.ai", desc: "Frontier AI model", yt: "https://youtube.com/@MistralAI", tw: "https://twitter.com/MistralAI" },
-  { name: "Mixtral 8x7B", maker: "Mistral AI", url: "https://mistral.ai", desc: "Open mixture of experts", yt: "https://youtube.com/@MistralAI", tw: "https://twitter.com/MistralAI" },
-  { name: "Grok", maker: "xAI", url: "https://grok.com", desc: "Real-time AI assistant", yt: "", tw: "https://twitter.com/xai" },
-  { name: "DeepSeek", maker: "DeepSeek", url: "https://deepseek.com", desc: "Open source reasoning model", yt: "", tw: "https://twitter.com/deepseek_ai" },
-  { name: "Qwen 2.5", maker: "Alibaba Cloud", url: "https://tongyi.aliyun.com", desc: "Alibaba's LLM series", yt: "", tw: "" },
-  { name: "Gemma 2", maker: "Google", url: "https://ai.google.dev/gemma", desc: "Lightweight open models", yt: "https://youtube.com/@Google", tw: "" },
-  { name: "Phi-3", maker: "Microsoft", url: "https://azure.microsoft.com", desc: "Small language models", yt: "https://youtube.com/@Microsoft", tw: "https://twitter.com/Microsoft" },
-  { name: "Stable Diffusion 3", maker: "Stability AI", url: "https://stability.ai", desc: "Text-to-image generation", yt: "https://youtube.com/@StabilityAI", tw: "https://twitter.com/StabilityAI" },
-  { name: "DALL-E 3", maker: "OpenAI", url: "https://openai.com/dall-e-3", desc: "Image generation by OpenAI", yt: "https://youtube.com/@OpenAI", tw: "https://twitter.com/OpenAI" },
-  { name: "Midjourney", maker: "Midjourney", url: "https://midjourney.com", desc: "Premium AI image generation", yt: "", tw: "https://twitter.com/midjourney" },
-  { name: "Whisper", maker: "OpenAI", url: "https://openai.com/research/whisper", desc: "Speech recognition model", yt: "https://youtube.com/@OpenAI", tw: "https://twitter.com/OpenAI" },
-  { name: "ElevenLabs", maker: "ElevenLabs", url: "https://elevenlabs.io", desc: "AI voice synthesis", yt: "https://youtube.com/@ElevenLabs", tw: "https://twitter.com/elevenlabsio" },
-  { name: "GitHub Copilot", maker: "GitHub/Microsoft", url: "https://github.com/features/copilot", desc: "AI pair programmer", yt: "https://youtube.com/@GitHub", tw: "https://twitter.com/github" },
-  { name: "Cline", maker: "Cline", url: "https://cline.bot", desc: "AI coding assistant in VS Code", yt: "", tw: "" },
-  { name: "Cody", maker: "Sourcegraph", url: "https://sourcegraph.com/cody", desc: "AI code assistant", yt: "", tw: "https://twitter.com/sourcegraph" },
-  { name: "Tabnine", maker: "Tabnine", url: "https://tabnine.com", desc: "AI code completion", yt: "https://youtube.com/@Tabnine", tw: "https://twitter.com/tabnine" },
+const AI_AGENTS = [
+  { name: "ChatGPT", maker: "OpenAI", url: "https://chatgpt.com", desc: "General AI assistant that helps with coding, writing, and analysis", yt: "https://youtube.com/@OpenAI", tw: "https://twitter.com/OpenAI" },
+  { name: "Claude", maker: "Anthropic", url: "https://claude.ai", desc: "Helpful AI assistant for complex tasks and reasoning", yt: "https://youtube.com/@AnthropicAI", tw: "https://twitter.com/AnthropicAI" },
+  { name: "Gemini", maker: "Google DeepMind", url: "https://gemini.google.com", desc: "Multimodal AI that understands text, images, and code", yt: "https://youtube.com/@GoogleDeepMind", tw: "https://twitter.com/GoogleDeepMind" },
+  { name: "GitHub Copilot", maker: "GitHub/Microsoft", url: "https://github.com/features/copilot", desc: "AI pair programmer that codes alongside you in real-time", yt: "https://youtube.com/@GitHub", tw: "https://twitter.com/github" },
+  { name: "Cline", maker: "Cline", url: "https://cline.bot", desc: "Autonomous coding agent in VS Code", tw: "" },
+  { name: "Cody", maker: "Sourcegraph", url: "https://sourcegraph.com/cody", desc: "AI code assistant that knows your entire codebase", tw: "https://twitter.com/sourcegraph" },
+  { name: "Cline", maker: "Cline", url: "https://cline.bot", desc: "Autonomous coding agent", tw: "" },
+  { name: "Devin", maker: "Cognition Labs", url: "https://cognition.ai", desc: "Autonomous AI software engineer", tw: "https://twitter.com/cognition_labs" },
+  { name: "Cursor", maker: "Anysphere", url: "https://cursor.sh", desc: "AI-first code editor with built-in agentic coding", tw: "https://twitter.com/cursor_ai" },
+  { name: "Windsurf", maker: "Codeium", url: "https://codeium.com/windsurf", desc: "Agentic IDE with AI flow", tw: "https://twitter.com/codeiumdev" },
+  { name: "Perplexity", maker: "Perplexity AI", url: "https://perplexity.ai", desc: "AI search engine with real-time research", yt: "", tw: "https://twitter.com/perplexity_ai" },
+  { name: "Grok", maker: "xAI", url: "https://grok.com", desc: "Real-time AI with personality and humor", tw: "https://twitter.com/xai" },
+  { name: "DeepSeek", maker: "DeepSeek", url: "https://deepseek.com", desc: "Open-source deep reasoning AI", tw: "https://twitter.com/deepseek_ai" },
+  { name: "Mistral", maker: "Mistral AI", url: "https://mistral.ai", desc: "Efficient open-weight AI models", tw: "https://twitter.com/MistralAI" },
+  { name: "Llama", maker: "Meta", url: "https://llama.meta.com", desc: "Open source AI models for everyone", yt: "https://youtube.com/@Meta", tw: "https://twitter.com/Meta" },
+  { name: "Midjourney", maker: "Midjourney", url: "https://midjourney.com", desc: "Creative AI for image generation", tw: "https://twitter.com/midjourney" },
+  { name: "Stable Diffusion", maker: "Stability AI", url: "https://stability.ai", desc: "Open source image generation", tw: "https://twitter.com/StabilityAI" },
+  { name: "ElevenLabs", maker: "ElevenLabs", url: "https://elevenlabs.io", desc: "Voice AI that speaks like a human", yt: "https://youtube.com/@ElevenLabs", tw: "https://twitter.com/elevenlabsio" },
+  { name: "NotebookLM", maker: "Google", url: "https://notebooklm.google.com", desc: "AI note-taking and research agent", tw: "" },
+  { name: "Synthesia", maker: "Synthesia", url: "https://synthesia.io", desc: "AI video generation with avatars", tw: "https://twitter.com/synthesiaIO" },
+  { name: "Jasper", maker: "Jasper", url: "https://jasper.ai", desc: "AI content creation agent", tw: "https://twitter.com/jasper" },
+  { name: "Grammarly", maker: "Grammarly", url: "https://grammarly.com", desc: "AI writing assistant that edits alongside you", tw: "https://twitter.com/grammarly" },
+  { name: "Otter.ai", maker: "Otter", url: "https://otter.ai", desc: "AI meeting assistant that takes notes", tw: "https://twitter.com/otter_ai" },
+  { name: "Reclaim", maker: "Reclaim AI", url: "https://reclaim.ai", desc: "AI scheduling agent for your calendar", tw: "" },
+  { name: "Notion AI", maker: "Notion", url: "https://notion.so", desc: "AI workspace agent integrated into Notion", tw: "https://twitter.com/notion" },
 ];
 
 const STUDENT_TOOLS = [
@@ -106,7 +108,7 @@ const STUDENT_TOOLS = [
 
 const TABS = [
   { id: "dev", label: "Dev Tools", icon: Code },
-  { id: "ai", label: "AI Models", icon: Robot },
+  { id: "ai", label: "AI Agents", icon: Robot },
   { id: "student", label: "Student Benefits", icon: GraduationCap },
 ];
 
@@ -115,7 +117,7 @@ export default function ToolsPage() {
   const [search, setSearch] = useState("");
 
   const activeTab = TABS.find((t) => t.id === tab);
-  const list = tab === "dev" ? DEV_TOOLS : tab === "ai" ? AI_MODELS : STUDENT_TOOLS;
+  const list = tab === "dev" ? DEV_TOOLS : tab === "ai" ? AI_AGENTS : STUDENT_TOOLS;
   const filtered = list.filter((i) => !search || i.name.toLowerCase().includes(search.toLowerCase()) || i.desc.toLowerCase().includes(search.toLowerCase()));
 
   return (
