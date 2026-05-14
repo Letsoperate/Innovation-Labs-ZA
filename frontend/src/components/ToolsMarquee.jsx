@@ -136,9 +136,9 @@ function MarqueeRow({ tools, reverse }) {
                 alt={tool.name}
                 className="w-6 h-6"
                 loading="eager"
-                onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.querySelector('.fallback').style.display = 'flex'; }}
+                onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.querySelector('.fallback').style.display = 'inline'; }}
               />
-              <span className="fallback w-6 h-6 rounded bg-secondary/50 flex items-center justify-center text-[9px] font-bold text-muted-foreground hidden">{tool.name[0]}</span>
+              <span className="fallback hidden text-[8px] font-bold text-muted-foreground leading-tight text-center px-0.5">{tool.name.length > 5 ? tool.name.slice(0,4) : tool.name}</span>
             </div>
           </a>
         ))}
