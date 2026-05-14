@@ -34,6 +34,7 @@ export default defineSchema({
     viewsCount: v.optional(v.number()),
     commentsCount: v.optional(v.number()),
     bookmarksCount: v.optional(v.number()),
+    screenshots: v.optional(v.string()),
     createdAt: v.string(),
   }).index("slug", ["slug"]).index("makerId", ["makerId"]),
 

@@ -153,35 +153,18 @@ export default function ProjectDetailPage() {
                 <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
               </section>
 
-              {project.website_url && (
+              {project.screenshots && project.screenshots.length > 0 && (
                 <section>
                   <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">
-                    <Monitor size={22} /> Live Preview
+                    <Monitor size={22} /> Screenshots
                   </h2>
-                  <div className="border border-border overflow-hidden">
-                    <div className="flex items-center gap-1.5 px-3 py-2 bg-secondary/40 border-b border-border">
-                      <div className="flex gap-1">
-                        <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                      </div>
-                      <span className="text-xs text-muted-foreground ml-2 truncate max-w-xs">{project.website_url}</span>
-                      <a href={project.website_url} target="_blank" rel="noreferrer" className="ml-auto text-xs text-primary hover:underline flex items-center gap-1">
-                        Open in new tab <ArrowSquareOut size={10} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {project.screenshots.map((s, i) => (
+                      <a key={i} href={fileUrl(s)} target="_blank" rel="noreferrer" className="block border border-border overflow-hidden group">
+                        <img src={fileUrl(s)} alt={`${project.name} screenshot ${i + 1}`} className="w-full h-64 object-cover object-top group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                       </a>
-                    </div>
-                    <iframe
-                      src={`/_/backend/api/proxy?url=${encodeURIComponent(project.website_url)}`}
-                      title={`Preview of ${project.name}`}
-                      className="w-full h-[500px] border-0"
-                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-downloads allow-storage-access-by-user-activation"
-                      loading="lazy"
-                      data-testid="live-preview-iframe"
-                    />
+                    ))}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    If the preview is blank, the site blocks embedding. Use "Open in new tab" above.
-                  </p>
                 </section>
               )}
 

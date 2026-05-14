@@ -124,6 +124,8 @@ async def annotate(ps, uid):
         except: p["tags"]=[]
         try: p["tech_stack"]=json.loads(p.get("techStack","[]"))
         except: p["tech_stack"]=p.get("techStack",[])
+        try: p["screenshots"]=json.loads(p.get("screenshots","[]"))
+        except: p["screenshots"]=[]
         if uid:
             u=await cv_get_upvote(str(p["_id"]),uid); p["has_upvoted"]=u is not None
             b=await cv_get_bookmark(str(p["_id"]),uid); p["has_bookmarked"]=b is not None
