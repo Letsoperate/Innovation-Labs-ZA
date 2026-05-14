@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import api from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -26,7 +26,7 @@ export default function CommunityPage() {
   const [form, setForm] = useState({ title: "", body: "", channel: activeChannel });
   const [submitting, setSubmitting] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const [ch, po] = await Promise.all([
@@ -37,9 +37,9 @@ export default function CommunityPage() {
       setPosts(po.data);
     } catch { toast.error("Failed to load community"); }
     finally { setLoading(false); }
-  };
+  }, [activeChannel, sort]);
 
-  useEffect(() => { load(); }, [activeChannel, sort, load]);
+  useEffect(() => { load(); }, [load]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
