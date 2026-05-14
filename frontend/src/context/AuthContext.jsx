@@ -12,7 +12,13 @@ export function AuthProvider({ children }) {
       const { data } = await api.get("/auth/me");
       setUser(data);
     } catch {
-      setUser(false);
+      try {
+        await api.post("/auth/refresh");
+        const { data } = await api.get("/auth/me");
+        setUser(data);
+      } catch {
+        setUser(false);
+      }
     } finally {
       setChecked(true);
     }

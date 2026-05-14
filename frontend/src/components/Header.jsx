@@ -3,15 +3,6 @@ import { useAuth } from "../context/AuthContext";
 import BrowseDropdown from "./BrowseDropdown";
 import { Button } from "./ui/button";
 import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket, CaretDown } from "@phosphor-icons/react";
-import { useState, useEffect } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { fileUrl } from "../lib/api";
 
@@ -58,48 +49,42 @@ export default function Header() {
           </Button>
 
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button data-testid="user-menu-trigger" className="rounded-full">
-                  <Avatar className="h-9 w-9 ring-1 ring-border rounded-full">
+            <div className="relative group">
+              <button data-testid="user-menu-trigger" className="rounded-full transition-transform duration-200 group-hover:scale-105">
+                <Avatar className="h-9 w-9 ring-1 ring-border rounded-full ring-offset-2 ring-offset-background">
+                  <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} className="rounded-full" />
+                  <AvatarFallback className="bg-foreground text-background font-semibold rounded-full">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+              <div className="absolute right-0 top-full mt-3 w-56 bg-card border border-border rounded-2xl shadow-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50 origin-top-right">
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <Avatar className="h-8 w-8 rounded-full">
                     <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} className="rounded-full" />
-                    <AvatarFallback className="bg-foreground text-background font-semibold rounded-full">
-                      {initials}
-                    </AvatarFallback>
+                    <AvatarFallback className="bg-foreground text-background text-xs font-semibold rounded-full">{initials}</AvatarFallback>
                   </Avatar>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl">
-                <DropdownMenuLabel>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8 rounded-full">
-                      <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} className="rounded-full" />
-                      <AvatarFallback className="bg-foreground text-background text-xs font-semibold rounded-full">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-semibold text-sm">{user.name}</div>
-                      <div className="text-xs text-muted-foreground font-normal">@{user.username}</div>
-                    </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm truncate">{user.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">@{user.username}</div>
                   </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate(`/u/${user.username}`)} data-testid="menu-profile" className="rounded-lg">
-                  <User size={16} className="mr-2" /> Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate(`/u/${user.username}?tab=bookmarks`)} data-testid="menu-bookmarks" className="rounded-lg">
-                  <BookmarkSimple size={16} className="mr-2" /> Bookmarks
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/submit")} data-testid="menu-submit" className="rounded-lg">
-                  <Rocket size={16} className="mr-2" /> Submit Project
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={async () => { await logout(); navigate("/"); }} data-testid="menu-logout" className="rounded-lg">
-                  <SignOut size={16} className="mr-2" /> Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </div>
+                <div className="h-px bg-border my-1" />
+                <button onClick={() => { navigate(`/u/${user.username}`); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors text-left">
+                  <User size={16} /> Profile
+                </button>
+                <button onClick={() => { navigate(`/u/${user.username}?tab=bookmarks`); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors text-left">
+                  <BookmarkSimple size={16} /> Bookmarks
+                </button>
+                <button onClick={() => { navigate("/submit"); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-orange-600 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-950/50 font-semibold transition-colors text-left">
+                  <Rocket size={16} weight="fill" className="text-orange-500" /> Submit Project
+                </button>
+                <div className="h-px bg-border my-1" />
+                <button onClick={async () => { await logout(); navigate("/"); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors text-left">
+                  <SignOut size={16} /> Log out
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="hidden sm:flex items-center gap-2">
               <Button
