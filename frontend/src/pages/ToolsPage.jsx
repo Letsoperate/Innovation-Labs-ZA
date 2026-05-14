@@ -2,6 +2,48 @@ import { useState } from "react";
 import { FadeIn, Stagger, StaggerItem } from "../components/Motion";
 import { Code, Robot, GraduationCap, ArrowSquareOut, MagnifyingGlass, YoutubeLogo, TwitterLogo } from "@phosphor-icons/react";
 
+const SLUG_MAP = {
+  "react":"react","vue.js":"vuedotjs","angular":"angular","svelte":"svelte",
+  "next.js":"nextdotjs","nuxt":"nuxtdotjs","astro":"astro","tailwind css":"tailwindcss",
+  "bootstrap":"bootstrap","node.js":"nodedotjs","deno":"deno","bun":"bun",
+  "python":"python","go":"go","rust":"rust","typescript":"typescript",
+  "graphql":"graphql","prisma":"prisma","docker":"docker","kubernetes":"kubernetes",
+  "mongodb":"mongodb","postgresql":"postgresql","redis":"redis","sqlite":"sqlite",
+  "mysql":"mysql","supabase":"supabase","firebase":"firebase","vite":"vite",
+  "webpack":"webpack","eslint":"eslint","prettier":"prettier","jest":"jest",
+  "cypress":"cypress","fastapi":"fastapi","express":"express","django":"django",
+  "rails":"rubyonrails","laravel":"laravel","flutter":"flutter",
+  "three.js":"threedotjs","d3.js":"d3dotjs","redux":"redux","zod":"zod",
+  "trpc":"trpc","hono":"hono","git":"git","npm":"npm","yarn":"yarn","pnpm":"pnpm",
+  "linux":"linux","nginx":"nginx","electron":"electron","tauri":"tauri",
+  "vscode":"visualstudio","dart":"dart","swift":"swift","kotlin":"kotlin",
+  "chatgpt":"openai","claude":"anthropic","gemini":"googlegemini","grok":"xai",
+  "deepseek":"deepseek","mistral":"mistral","llama":"meta","midjourney":"midjourney",
+  "stable diffusion":"stabilityai","elevenlabs":"elevenlabs","synthesia":"synthesia",
+  "jasper":"jasper","otter.ai":"otter","reclaim":"reclaimai","cursor":"cursor",
+  "windsurf":"codeium","devin":"cognition","github copilot":"githubcopilot",
+  "github student pack":"github","aws educate":"amazonwebservices",
+  "google cloud":"googlecloud","microsoft azure":"azuredevops",
+  "digitalocean":"digitalocean","heroku":"heroku","jetbrains":"jetbrains",
+  "figma":"figma","canva":"canva","notion ai":"notion","notion":"notion",
+  "postman":"postman","spotify":"spotify","youtube premium":"youtube",
+  "apple education":"apple","amazon prime student":"amazon",
+  "replit":"replit","autodesk":"autodesk","unity student":"unity","blender":"blender",
+  "grammarly edu":"grammarly","linkedin learning":"linkedin","coursera":"coursera",
+  "udemy":"udemy","gitlab":"gitlab","slack education":"slack","zoom education":"zoom",
+  "airtable":"airtable","clickup education":"clickup","obsidian":"obsidian",
+  "leetcode":"leetcode","hackerrank":"hackerrank","kaggle":"kaggle",
+  "stripe":"stripe","namecheap":"namecheap","loom education":"loom","linear":"linear",
+  "railway":"railway","miro education":"miro","todoist pro":"todoist",
+  "evernote":"evernote","asana":"asana","perplexity pro":"perplexity",
+  "raycast":"raycast","gitkraken":"gitkraken","oracle":"oracle","red hat":"redhat",
+  "nvidia":"nvidia","hack the box":"hackthebox","tryhackme":"tryhackme",
+  "coda":"coda","arc":"arc","perplexity":"perplexity","notebooklm":"googlegemini",
+  "google cloud credits":"googlecloud","microsoft 365":"microsoft",
+  "github":"github","amazon":"amazon","linkedin":"linkedin","youtube":"youtube",
+};
+const slugify = (n) => SLUG_MAP[n.toLowerCase().trim()] || n.toLowerCase().replace(/[^a-z0-9]/g,"");
+
 const DEV_TOOLS = [
   { name: "React", url: "https://react.dev", desc: "UI library by Meta", tags: ["framework","frontend"] },
   { name: "Next.js", url: "https://nextjs.org", desc: "React framework for production", tags: ["framework","fullstack"] },
@@ -156,8 +198,10 @@ export default function ToolsPage() {
             <StaggerItem key={i}>
               <a href={item.url} target="_blank" rel="noreferrer" className="block border border-border rounded-2xl p-4 hover:border-foreground/30 hover:shadow-sm transition-all group">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors truncate">{item.name}</h3>
+                  <div className="min-w-0 flex items-center gap-3">
+                    <img src={`https://cdn.simpleicons.org/${slugify(item.name)}/000`} alt="" className="w-6 h-6 flex-shrink-0" loading="lazy" crossorigin="anonymous" onError={(e) => e.target.style.display='none'} />
+                    <div>
+                      <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors truncate">{item.name}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">{item.maker || item.desc}</p>
                   </div>
                   <ArrowSquareOut size={14} className="flex-shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
