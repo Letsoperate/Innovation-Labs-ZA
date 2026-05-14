@@ -176,18 +176,6 @@ export default function SubmitProjectPage() {
                     </div>
                   </div>
                 </div>
-                    ) : (
-                      <>
-                        <UploadSimple size={28} className="mx-auto text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mt-2">PNG, JPG, WebP up to 5MB</p>
-                        <input id="upload" type="file" accept="image/*" onChange={onUpload} className="hidden" data-testid="upload-input" />
-                        <label htmlFor="upload" className="inline-block mt-3 px-4 py-2 border border-foreground/20 text-sm font-medium cursor-pointer hover:bg-foreground hover:text-background transition-colors">
-                          {uploading ? "Uploading..." : "Choose file"}
-                        </label>
-                      </>
-                    )}
-                  </div>
-                </div>
                 <div>
                   <Label htmlFor="tags">Tags <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
                   <Input id="tags" data-testid="input-tags" value={form.tags} onChange={(e) => update("tags", e.target.value)} className="rounded-sm mt-2" placeholder="notes, markdown, productivity" />
