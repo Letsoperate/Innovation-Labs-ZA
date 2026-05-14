@@ -117,6 +117,8 @@ async def annotate(ps, uid):
     out=[]
     for p in ps:
         p["score"]=project_score(p); p["badges"]=compute_badges(p); p["has_upvoted"]=False; p["has_bookmarked"]=False
+        for a,b in [("upvotesCount","upvotes_count"),("viewsCount","views_count"),("commentsCount","comments_count"),("bookmarksCount","bookmarks_count"),("createdAt","created_at"),("websiteUrl","website_url"),("githubUrl","github_url"),("makerId","maker_id"),("coverImageUrl","cover_image_url"),("techStack","tech_stack")]:
+            if a in p: p[b]=p[a]
         if uid:
             u=await cv_get_upvote(str(p["_id"]),uid); p["has_upvoted"]=u is not None
             b=await cv_get_bookmark(str(p["_id"]),uid); p["has_bookmarked"]=b is not None
