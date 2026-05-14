@@ -13,6 +13,8 @@ export default defineSchema({
     github: v.optional(v.string()),
     website: v.optional(v.string()),
     role: v.string(),
+    referredBy: v.optional(v.string()),
+    referralCode: v.optional(v.string()),
     createdAt: v.string(),
   }).index("email", ["email"]).index("username", ["username"]),
 

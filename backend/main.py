@@ -131,7 +131,7 @@ async def annotate(ps, uid):
     return out
 
 class RegReq(BaseModel):
-    email: str; password: str; name: str; username: str
+    email: str; password: str; name: str; username: str; ref: Optional[str] = None
 class LoginReq(BaseModel):
     email: str; password: str
 class ProfileUpd(BaseModel):
