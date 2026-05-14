@@ -9,5 +9,18 @@
       "entrypoint": "backend",
       "routePrefix": "/_/backend"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/p/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "User-Agent",
+          "value": ".*(Twitterbot|facebook|LinkedInBot|Slack|WhatsApp|Telegram|Discord|Googlebot|Slurp|BingPreview).*"
+        }
+      ],
+      "destination": "/_/backend/api/og/project/:slug"
+    }
+  ]
 }
