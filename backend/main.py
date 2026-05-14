@@ -230,7 +230,14 @@ async def update_me(p: ProfileUpd, u: dict = Depends(get_current_user)):
 async def get_user(username: str):
     u=await cv_get_user_by_username(username.lower())
     if not u: raise HTTPException(404,"User not found")
-    return {"user":serialize_user(u),"projects":[]}
+    ps=await cv_list_projects(sort="recent",limit=100)
+    user_projects=[p for p in ps if p.get("makerId")==u["_id"]or p.get("maker_id")==u["_id"]]
+    for p in user_projects:
+        try: p["tags"]=json.loads(p.get("tags","[]"))
+        except: p["tags"]=[]
+        try: p["tech_stack"]=json.loads(p.get("techStack","[]"))
+        except: p["tech_stack"]=p.get("techStack",[])
+    return {"user":serialize_user(u),"projects":user_projects}
 
 @api.post("/projects")
 async def create_project(p: ProjCreate, u: dict = Depends(get_current_user)):

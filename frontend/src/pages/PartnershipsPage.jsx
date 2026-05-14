@@ -50,11 +50,20 @@ export default function PartnershipsPage() {
         <FadeIn delay={0.2}>
           <div className="mt-12 p-6 sm:p-8 border border-dashed border-border rounded-2xl text-center bg-secondary/20">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-border bg-card text-xs uppercase tracking-[0.15em] font-semibold rounded-full mb-4">
-              <Handshake size={12} /> Become a partner
+              <Handshake size={12} /> Sponsor a competition
             </div>
-            <p className="font-heading font-bold text-xl mb-2">Want to partner with us?</p>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">Innovation Lab ZA is looking for partners who believe in empowering the next generation of African makers.</p>
-            <a href="mailto:admin@innovationlabza.dev" className="inline-flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary/90 transition-colors">Contact us</a>
+            <p className="font-heading font-bold text-xl mb-2">We're looking for sponsors.</p>
+            <p className="text-sm text-muted-foreground mb-4 max-w-lg mx-auto">
+              We organize <strong>hackathons</strong>, <strong>AI vibe coding competitions</strong>, <strong>skills development challenges</strong>, and <strong>student encouragement programs</strong> for the South African maker community. 
+              Your sponsorship helps us provide prizes, cloud credits, mentorship, and resources to hundreds of participants.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mb-4 text-xs text-muted-foreground">
+              <span className="px-3 py-1 border border-border rounded-full">🏆 Hackathons</span>
+              <span className="px-3 py-1 border border-border rounded-full">🤖 AI Coding</span>
+              <span className="px-3 py-1 border border-border rounded-full">📚 Skills Development</span>
+              <span className="px-3 py-1 border border-border rounded-full">🎓 Student Programs</span>
+            </div>
+            <a href="mailto:admin@innovationlabza.dev" className="inline-flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary/90 transition-colors">Become a sponsor</a>
           </div>
         </FadeIn>
       </div>

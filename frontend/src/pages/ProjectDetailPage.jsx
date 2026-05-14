@@ -33,22 +33,14 @@ export default function ProjectDetailPage() {
         setHasUp(!!cached.has_upvoted);
         setUpCount(cached.upvotes_count);
         setLoading(false);
-        api.get(`/projects/${cached.id}/comments`).then((c) => setComments(c.data));
+        api.get(`/projects/${cached.slug}/comments`).then((c) => setComments(c.data));
         return;
       }
       const { data } = await api.get(`/projects/${slug}`);
       setProject(data);
       setHasUp(!!data.has_upvoted);
       setUpCount(data.upvotes_count);
-      document.title = `${data.name} - Innovation Lab ZA`;
-      const og = (p,v) => { const m=document.querySelector(`meta[property="${p}"]`); if(m) m.setAttribute("content",v); };
-      og("og:title", data.name);
-      og("og:description", data.tagline || "");
-      og("og:image", data.cover_image_url || data.coverImageUrl || "");
-      og("og:url", window.location.href);
-      const tc = document.querySelector('meta[name="twitter:card"]');
-      if (tc) tc.setAttribute("content", "summary_large_image");
-      const c = await api.get(`/projects/${data.id}/comments`);
+      const c = await api.get(`/projects/${slug}/comments`);
       setComments(c.data);
     } catch {
       toast.error("Project not found. Please refresh the page.");
@@ -62,7 +54,7 @@ export default function ProjectDetailPage() {
   const onUpvote = async () => {
     if (!user) return toast.error("Sign in to upvote");
     try {
-      const { data } = await api.post(`/projects/${project.id}/upvote`);
+      const { data } = await api.post(`/projects/${project.slug}/upvote`);
       setHasUp(data.upvoted);
       setUpCount(data.upvotes_count);
     } catch { toast.error("Failed to upvote"); }
@@ -74,7 +66,7 @@ export default function ProjectDetailPage() {
     if (!comment.trim()) return;
     setPosting(true);
     try {
-      const { data } = await api.post(`/projects/${project.id}/comments`, { body: comment });
+      const { data } = await api.post(`/projects/${project.slug}/comments`, { body: comment });
       setComments([data, ...comments]);
       setComment("");
       toast.success("Comment posted");
