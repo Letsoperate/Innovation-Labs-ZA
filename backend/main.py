@@ -330,6 +330,21 @@ async def delete_banner(bid: str, u: dict = Depends(get_current_user)):
     if u.get("role")!="admin": raise HTTPException(403,"Admin only")
     await cv_delete_banner(bid); return{"ok":True}
 
+@api.get("/proxy")
+async def proxy(url: str):
+    try:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
+            r = await c.get(url, headers={"User-Agent": "Mozilla/5.0"})
+            ct = r.headers.get("content-type", "text/html")
+            content = r.content
+            if "text/html" in ct:
+                html = content.decode("utf-8", errors="replace")
+                html = html.replace("<head>", f'<head><base href="{url}">', 1)
+                content = html.encode("utf-8")
+            return FastResponse(content=content, media_type=ct)
+    except Exception as e:
+        raise HTTPException(502, f"Proxy failed: {e}")
+
 @api.get("/stats")
 async def stats():
     ps=await cv_list_projects(sort="recent",limit=0)

@@ -31,7 +31,6 @@ const HACKER_TOOLS = [
   { name: "ESLint", slug: "eslint", url: "https://eslint.org", color: "4B32C3" },
   { name: "Prettier", slug: "prettier", url: "https://prettier.io", color: "F7B93E" },
   { name: "Jest", slug: "jest", url: "https://jestjs.io", color: "C21325" },
-  { name: "Playwright", slug: "playwright", url: "https://playwright.dev", color: "2EAD33" },
   { name: "Cypress", slug: "cypress", url: "https://cypress.io", color: "17202C" },
   { name: "FastAPI", slug: "fastapi", url: "https://fastapi.tiangolo.com", color: "009688" },
   { name: "Express", slug: "express", url: "https://expressjs.com", color: "000000" },
@@ -75,7 +74,7 @@ const STUDENT_BENEFITS = [
   { name: "YouTube", slug: "youtube", url: "https://youtube.com/premium/student", color: "FF0000" },
   { name: "Apple", slug: "apple", url: "https://apple.com/us-edu/store", color: "000000" },
   { name: "Amazon", slug: "amazon", url: "https://amazon.com/prime/student", color: "FF9900" },
-  { name: "VS Code", slug: "visualstudiocode", url: "https://code.visualstudio.com", color: "007ACC" },
+  { name: "CodeSandbox", slug: "codesandbox", url: "https://codesandbox.io", color: "000000" },
   { name: "Replit", slug: "replit", url: "https://replit.com", color: "F26207" },
   { name: "Autodesk", slug: "autodesk", url: "https://autodesk.com/education", color: "000000" },
   { name: "Unity", slug: "unity", url: "https://unity.com/products/unity-student", color: "000000" },
@@ -132,7 +131,7 @@ function MarqueeRow({ tools, reverse }) {
             className="flex-shrink-0 flex items-center justify-center w-12 h-12 border border-border/30 hover:border-foreground/40 hover:bg-secondary/40 transition-colors rounded-md"
           >
             <img
-              src={`https://unpkg.com/simple-icons@13.21.0/icons/${tool.slug}.svg`}
+              src={`https://cdn.simpleicons.org/${tool.slug}/${tool.color}`}
               alt={tool.name}
               className="w-6 h-6"
               loading="eager"

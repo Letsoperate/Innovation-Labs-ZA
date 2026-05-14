@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Textarea } from "../components/ui/textarea";
-import { ArrowUp, Eye, ChatCircle, ArrowSquareOut, GithubLogo, TwitterLogo, Globe, ArrowLeft, Monitor } from "@phosphor-icons/react";
+import { ArrowUp, Eye, ChatCircle, ArrowSquareOut, GithubLogo, TwitterLogo, Globe, ArrowLeft, Monitor, LinkSimple, LinkedinLogo } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { Skeleton } from "../components/ui/skeleton";
@@ -171,7 +171,7 @@ export default function ProjectDetailPage() {
                       </a>
                     </div>
                     <iframe
-                      src={project.website_url}
+                      src={`/_/backend/api/proxy?url=${encodeURIComponent(project.website_url)}`}
                       title={`Preview of ${project.name}`}
                       className="w-full h-[500px] border-0"
                       sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
@@ -276,6 +276,15 @@ export default function ProjectDetailPage() {
                     <span className="text-muted-foreground">Combined score</span>
                     <span className="font-heading font-black text-primary">{project.score}</span>
                   </div>
+                </div>
+              </div>
+
+              <div className="border border-border p-5">
+                <div className="text-xs uppercase tracking-[0.2em] font-semibold text-muted-foreground mb-4">Share</div>
+                <div className="flex gap-2">
+                  <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(project.name + " - " + project.tagline)}&url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="w-9 h-9 border border-border flex items-center justify-center hover:bg-[#1DA1F2] hover:text-white hover:border-[#1DA1F2] transition-colors" title="Share on X/Twitter"><TwitterLogo size={16} weight="fill" /></a>
+                  <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="w-9 h-9 border border-border flex items-center justify-center hover:bg-[#0A66C2] hover:text-white hover:border-[#0A66C2] transition-colors" title="Share on LinkedIn"><LinkedinLogo size={16} weight="fill" /></a>
+                  <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Link copied!"); }} className="w-9 h-9 border border-border flex items-center justify-center hover:bg-foreground hover:text-background transition-colors" title="Copy link"><LinkSimple size={16} /></button>
                 </div>
               </div>
             </aside>
