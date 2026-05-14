@@ -130,13 +130,16 @@ function MarqueeRow({ tools, reverse }) {
             title={tool.name}
             className="flex-shrink-0 flex items-center justify-center w-12 h-12 border border-border/30 hover:border-foreground/40 hover:bg-secondary/40 transition-colors rounded-md"
           >
-            <img
-              src={`https://cdn.simpleicons.org/${tool.slug}/${tool.color}`}
-              alt={tool.name}
-              className="w-6 h-6"
-              loading="eager"
-              onError={(e) => e.target.style.display='none'}
-            />
+            <div className="w-6 h-6 flex items-center justify-center">
+              <img
+                src={`https://cdn.simpleicons.org/${tool.slug}/${tool.color}`}
+                alt={tool.name}
+                className="w-6 h-6"
+                loading="eager"
+                onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.querySelector('.fallback').style.display = 'flex'; }}
+              />
+              <span className="fallback w-6 h-6 rounded bg-secondary/50 flex items-center justify-center text-[9px] font-bold text-muted-foreground hidden">{tool.name[0]}</span>
+            </div>
           </a>
         ))}
       </div>

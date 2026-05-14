@@ -15,6 +15,7 @@ http.route({
       switch (type) {
         case "getUserByEmail": result = await ctx.runQuery(api.auth.getUserByEmail, { email: url.searchParams.get("email")! }); break;
         case "getUserByUsername": result = await ctx.runQuery(api.auth.getUserByUsername, { username: url.searchParams.get("username")! }); break;
+        case "getUserById": result = await ctx.runQuery(api.auth.getUserById, { id: url.searchParams.get("id")! }); break;
         case "getUser": result = await ctx.runQuery(api.auth.getUser, { id: url.searchParams.get("id")! }); break;
         case "listProjects": result = await ctx.runQuery(api.projects.listProjects, { sort: url.searchParams.get("sort") || "recent", category: url.searchParams.get("category") || undefined, q: url.searchParams.get("q") || undefined, limit: parseInt(url.searchParams.get("limit") || "50"), makerId: undefined }); break;
         case "getProject": result = await ctx.runQuery(api.projects.getProject, { slug: url.searchParams.get("slug")! }); break;

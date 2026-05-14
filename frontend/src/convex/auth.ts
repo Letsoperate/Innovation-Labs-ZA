@@ -63,6 +63,14 @@ export const updateUser = mutation({
   },
 });
 
+export const getUserById = query({
+  args: { id: v.string() },
+  handler: async (ctx, args) => {
+    const users = await ctx.db.query("users").filter((q) => q.eq(q.field("_id"), args.id)).collect();
+    return users[0] || null;
+  },
+});
+
 export const listUsers = query({
   args: {},
   handler: async (ctx) => {

@@ -29,6 +29,8 @@ async def cv_get_user_by_email(email):
     return await cv_q("getUserByEmail", email=email)
 async def cv_get_user_by_username(username):
     return await cv_q("getUserByUsername", username=username)
+async def cv_get_user_by_id(uid):
+    return await cv_q("getUserById", id=uid)
 async def cv_create_user(**k): return await cv_m("createUser", k)
 async def cv_update_user(i, u): return await cv_m("updateUser", {"id": i, "updates": u})
 async def cv_list_projects(sort="recent", category=None, q=None, limit=50):
@@ -118,6 +120,8 @@ async def annotate(ps, uid):
     for p in ps:
         p["id"]=p.get("_id","") or p.get("id","")
         p["score"]=project_score(p); p["badges"]=compute_badges(p); p["has_upvoted"]=False; p["has_bookmarked"]=False
+        maker = await cv_get_user_by_id(p.get("makerId","")) if p.get("makerId") else None
+        p["maker"] = serialize_user(maker) if maker else None
         for a,b in [("upvotesCount","upvotes_count"),("viewsCount","views_count"),("commentsCount","comments_count"),("bookmarksCount","bookmarks_count"),("createdAt","created_at"),("websiteUrl","website_url"),("githubUrl","github_url"),("makerId","maker_id"),("coverImageUrl","cover_image_url"),("videoUrl","video_url")]:
             if a in p: p[b]=p[a]
         try: p["tags"]=json.loads(p.get("tags","[]"))
@@ -455,18 +459,6 @@ async def seed():
         if not await cv_get_user_by_email("admin@innovationlabza.dev"):
             await cv_create_user(id=str(uuid.uuid4()),email="admin@innovationlabza.dev",username="admin",passwordHash=hash_password("admin123"),name="Admin",bio="Platform admin",role="admin",createdAt=datetime.now(timezone.utc).isoformat())
             logger.info("Admin seeded")
-        if not await cv_get_user_by_email("demo@innovationlabza.dev"):
-            mid=str(uuid.uuid4());n=datetime.now(timezone.utc).isoformat()
-            await cv_create_user(id=mid,email="demo@innovationlabza.dev",username="demo",passwordHash=hash_password("demo123"),name="Demo Maker",bio="Building stuff in public.",role="user",twitter="demo",github="demo",website="https://example.com",createdAt=n)
-            ps=[
-                {"name":"Synthwave Notes","tagline":"Markdown notes","category":"productivity","tags":json.dumps(["notes","markdown"]),"techStack":json.dumps(["React","FastAPI"]),"coverImageUrl":"https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe","upvotes":142,"views":980,"comments":18},
-                {"name":"DeployDash","tagline":"One-click deploys","category":"developer-tools","tags":json.dumps(["deploy","devops"]),"techStack":json.dumps(["Go","React"]),"coverImageUrl":"https://images.unsplash.com/photo-1551288049-bebda4e38f71","upvotes":211,"views":1450,"comments":32},
-                {"name":"Predator Bot Market","tagline":"Trading bots marketplace","category":"saas","tags":json.dumps(["bots","automation"]),"techStack":json.dumps(["React","Node.js"]),"coverImageUrl":"https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5","websiteUrl":"https://predator-bot-market.netlify.app/","upvotes":120,"views":850,"comments":16},
-            ]
-            for d in ps:
-                pid=str(uuid.uuid4());slug="-".join(d["name"].lower().split())+"-"+pid[:6]
-                await cv_create_project(id=pid,slug=slug,name=d["name"],tagline=d["tagline"],description=f"{d['tagline']}. Built for indie hackers.",websiteUrl=d.get("websiteUrl","https://example.com"),githubUrl="https://github.com",category=d["category"],tags=d["tags"],techStack=d["techStack"],coverImageUrl=d["coverImageUrl"],makerId=mid,createdAt=(datetime.now(timezone.utc)-timedelta(days=secrets.randbelow(20))).isoformat())
-            logger.info("Demo data seeded")
         ch=await cv_q("listChannels")or[]
         if not ch:
             n=datetime.now(timezone.utc).isoformat()

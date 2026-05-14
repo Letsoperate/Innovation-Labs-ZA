@@ -260,15 +260,11 @@ export default function ToolsPage() {
               <a href={item.url} target="_blank" rel="noreferrer" className="block border border-border rounded-2xl p-4 hover:border-foreground/30 hover:shadow-sm transition-all group relative">
                 {PROMOS[item.name.toLowerCase()] && <span className="absolute -top-2 -right-2 text-[9px] font-bold text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full shadow-sm">{PROMOS[item.name.toLowerCase()]}</span>}
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex items-center gap-3">
-                    <img src={`https://cdn.simpleicons.org/${slugify(item.name)}/000`} alt="" className="w-6 h-6 flex-shrink-0 mt-0.5" loading="lazy" crossOrigin="anonymous" onError={(e) => e.target.style.display='none'} />
-                    <div>
-                      <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors truncate">
-                        {item.name}
-                        {PROMOS[item.name.toLowerCase()] && <span className="ml-1.5 text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full inline-block align-middle leading-tight">{PROMOS[item.name.toLowerCase()]}</span>}
-                      </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.maker || item.desc}</p>
-                    </div>
+                    <div className="min-w-0 flex items-center gap-3">
+                      <div className="w-6 h-6 flex-shrink-0 relative">
+                        <img src={`https://cdn.simpleicons.org/${slugify(item.name)}/000`} alt="" className="w-6 h-6" loading="lazy" onError={(e) => { e.target.style.display='none'; e.target.nextElementSibling.style.display='flex'; }} />
+                        <div className="w-6 h-6 rounded bg-secondary/60 flex items-center justify-center text-[10px] font-bold text-muted-foreground hidden" style={{display: 'none'}}>{item.name[0].toUpperCase()}</div>
+                      </div>
                   </div>
                   <ArrowSquareOut size={14} className="flex-shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>

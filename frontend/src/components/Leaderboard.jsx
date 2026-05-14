@@ -10,15 +10,18 @@ export default function Leaderboard({ defaultPeriod = "all", limit = 10, compact
   const [period, setPeriod] = useState(defaultPeriod);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const firstLoad = useRef(true);
+  const mounted = useRef(true);
+
+  useEffect(() => { return () => { mounted.current = false; }; }, []);
 
   const load = useCallback(async (p, silent = false) => {
+    if (!mounted.current) return;
     if (!silent) setLoading(true);
     try {
       const { data } = await api.get(`/projects/leaderboard`, { params: { period: p, limit } });
-      setProjects(data);
+      if (mounted.current) setProjects(data);
     } finally {
-      if (!silent) setLoading(false);
+      if (!silent && mounted.current) setLoading(false);
     }
   }, [limit]);
 
@@ -26,7 +29,7 @@ export default function Leaderboard({ defaultPeriod = "all", limit = 10, compact
 
   useEffect(() => {
     const iv = setInterval(() => load(period, true), 1000);
-    return () => clearInterval(iv);
+    return () => { clearInterval(iv); mounted.current = false; };
   }, [period, load]);
 
   return (
