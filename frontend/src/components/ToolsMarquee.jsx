@@ -135,7 +135,7 @@ function MarqueeRow({ tools, reverse }) {
               alt={tool.name}
               className="w-6 h-6"
               loading="eager"
-              crossorigin="anonymous"
+              onError={(e) => e.target.style.display='none'}
             />
           </a>
         ))}

@@ -405,8 +405,11 @@ async def icon_proxy(slug: str, color: str = ""):
 
 @api.get("/stats")
 async def stats():
-    ps=await cv_list_projects(sort="recent",limit=0)
-    return{"projects":len(ps),"makers":0,"upvotes":0,"comments":0}
+    try:
+        ps=await cv_list_projects(sort="recent",limit=9999)
+        return{"projects":len(ps),"makers":0,"upvotes":0,"comments":0}
+    except:
+        return{"projects":0,"makers":0,"upvotes":0,"comments":0}
 
 @api.get("/categories")
 async def categories():
