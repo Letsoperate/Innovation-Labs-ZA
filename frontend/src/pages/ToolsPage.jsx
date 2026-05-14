@@ -44,6 +44,67 @@ const SLUG_MAP = {
 };
 const slugify = (n) => SLUG_MAP[n.toLowerCase().trim()] || n.toLowerCase().replace(/[^a-z0-9]/g,"");
 
+const PROMOS = {
+  "github copilot": "Free for students",
+  "github student pack": "Free",
+  "aws educate": "Free credits",
+  "google cloud": "$300 free",
+  "microsoft azure": "$100 free",
+  "jetbrains": "Free for students",
+  "figma": "Free education",
+  "canva": "Free for education",
+  "notion": "Free Plus plan",
+  "postman": "Free student program",
+  "digitalocean": "$50 free",
+  "heroku": "Free tier",
+  "vercel": "Free Pro for students",
+  "netlify": "Enhanced free",
+  "replit": "Free hacker plan",
+  "unity student": "Free license",
+  "blender": "Completely free",
+  "grammarly": "Free premium for students",
+  "linkedin learning": "Free for students",
+  "coursera": "Financial aid",
+  "udemy": "Free courses",
+  "leetcode": "Student discount",
+  "hackerrank": "Free certifications",
+  "kaggle": "Free GPU",
+  "namecheap": "Free domain + SSL",
+  "spotify": "50% off student",
+  "youtube premium": "Student discount",
+  "amazon prime student": "50% off",
+  "apple education": "Student pricing",
+  "miro": "Free education plan",
+  "clickup": "Free education",
+  "todoist": "Free for students",
+  "evernote": "Student discount",
+  "asana": "Student access",
+  "obsidian": "Free for students",
+  "perplexity": "Free Pro for students",
+  "github copilot": "Free for students",
+  "cursor": "Free student tier",
+  "windsurf": "Free tier",
+  "claude": "Free tier",
+  "chatgpt": "Free tier",
+  "gemini": "Free tier",
+  "vercel": "Free Hobby plan",
+  "netlify": "Free tier",
+  "supabase": "Free tier",
+  "firebase": "Free Spark plan",
+  "mongodb": "Free Atlas tier",
+  "docker": "Free tier",
+  "fastapi": "Open source",
+  "vite": "Open source",
+  "python": "Open source",
+  "rust": "Open source",
+  "godot": "Open source",
+  "blender": "Open source",
+  "stable diffusion": "Open source",
+  "llama": "Open source",
+  "mistral": "Open source",
+  "deepseek": "Open source",
+};
+
 const DEV_TOOLS = [
   { name: "React", url: "https://react.dev", desc: "UI library by Meta", tags: ["framework","frontend"] },
   { name: "Next.js", url: "https://nextjs.org", desc: "React framework for production", tags: ["framework","fullstack"] },
@@ -196,12 +257,16 @@ export default function ToolsPage() {
         <Stagger className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((item, i) => (
             <StaggerItem key={i}>
-              <a href={item.url} target="_blank" rel="noreferrer" className="block border border-border rounded-2xl p-4 hover:border-foreground/30 hover:shadow-sm transition-all group">
+              <a href={item.url} target="_blank" rel="noreferrer" className="block border border-border rounded-2xl p-4 hover:border-foreground/30 hover:shadow-sm transition-all group relative">
+                {PROMOS[item.name.toLowerCase()] && <span className="absolute -top-2 -right-2 text-[9px] font-bold text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full shadow-sm">{PROMOS[item.name.toLowerCase()]}</span>}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex items-center gap-3">
                     <img src={`https://cdn.simpleicons.org/${slugify(item.name)}/000`} alt="" className="w-6 h-6 flex-shrink-0 mt-0.5" loading="lazy" crossOrigin="anonymous" onError={(e) => e.target.style.display='none'} />
                     <div>
-                      <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors truncate">{item.name}</h3>
+                      <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors truncate">
+                        {item.name}
+                        {PROMOS[item.name.toLowerCase()] && <span className="ml-1.5 text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full inline-block align-middle leading-tight">{PROMOS[item.name.toLowerCase()]}</span>}
+                      </h3>
                       <p className="text-xs text-muted-foreground mt-0.5">{item.maker || item.desc}</p>
                     </div>
                   </div>
