@@ -441,6 +441,17 @@ async def icon_proxy(slug: str, color: str = ""):
 
 @api.post("/generate-video")
 async def generate_video(url: str):
+    ext_url = os.environ.get("VIDEO_GEN_URL", "")
+    if ext_url:
+        try:
+            async with httpx.AsyncClient(timeout=120) as c:
+                r = await c.post(f"{ext_url}/generate?url={urllib.parse.quote(url)}")
+                if r.status_code == 200:
+                    data = r.json()
+                    if data.get("ok") and data.get("video_url"):
+                        return {"ok": True, "video_url": f"{ext_url}{data['video_url']}"}
+        except Exception as e:
+            logger.warning(f"Video gen failed: {e}")
     return {"ok": False, "message": "Video generation requires a headless browser. Please use urltovideo.com and paste the video URL back.", "generate_url": f"https://urltovideo.com?url={urllib.parse.quote(url)}"}
 
 @api.get("/stats")
