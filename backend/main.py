@@ -441,8 +441,8 @@ async def icon_proxy(slug: str, color: str = ""):
 
 @api.post("/generate-video")
 async def generate_video(url: str):
-    ext_url = os.environ.get("VIDEO_GEN_URL", "")
-    api_key = os.environ.get("VIDEO_GEN_KEY", "")
+    ext_url = os.environ.get("VIDEO_GEN_URL", "https://urltocontentorvideo.netlify.app")
+    api_key = os.environ.get("VIDEO_GEN_KEY", "fdc8211e0994a175d53726c6a56369d9")
     if ext_url:
         try:
             async with httpx.AsyncClient(timeout=120) as c:
