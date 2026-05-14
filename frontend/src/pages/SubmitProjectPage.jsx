@@ -180,7 +180,7 @@ export default function SubmitProjectPage() {
                 </div>
                 <div>
                   <Label htmlFor="video">Video Preview URL</Label>
-                  <p className="text-xs text-muted-foreground mb-2">Optional. Generate a 2-5s video at <a href="https://urltovideo.com" target="_blank" rel="noreferrer" className="text-primary underline">urltovideo.com</a> and paste the link here.</p>
+                  <p className="text-xs text-muted-foreground mb-2">Optional. Generate a free 5-second video at <a href={`https://urltovideo.com`} target="_blank" rel="noreferrer" className="text-primary underline">urltovideo.com</a> and paste the link here.</p>
                   <Input id="video" type="url" value={form.video_url} onChange={(e) => update("video_url", e.target.value)} className="rounded-sm mt-1" placeholder="https://urltovideo.com/v/abc123" />
                 </div>
                 <div>
