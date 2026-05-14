@@ -206,7 +206,7 @@ async def github_cb(code: str, resp: Response):
     gid=str(gu.get("id","")); un=gu.get("login",gid).lower(); nm=gu.get("name")or un; av=gu.get("avatar_url","")
     ex=await cv_get_user_by_email(ge)
     if ex:
-        if av: await cv_update_user(ex["_id"],{"name":nm,"avatarUrl":av})
+        if av: await cv_update_user(ge,{"name":nm,"avatarUrl":av})
     else:
         uid=str(uuid.uuid4()); n=datetime.now(timezone.utc).isoformat()
         await cv_create_user(id=uid,email=ge,username=un,passwordHash=hash_password("gh_"+gid),name=nm,role="user",avatarUrl=av,createdAt=n)
@@ -225,7 +225,7 @@ async def update_me(p: ProfileUpd, u: dict = Depends(get_current_user)):
     if p.github is not None: upd["github"]=p.github
     if p.website is not None: upd["website"]=p.website
     if p.avatar_url is not None: upd["avatarUrl"]=p.avatar_url
-    if upd: await cv_update_user(u["_id"],upd)
+    if upd: await cv_update_user(u["email"],upd)
     return serialize_user(await cv_get_user_by_email(u["email"]))
 
 @api.get("/users/{username}")

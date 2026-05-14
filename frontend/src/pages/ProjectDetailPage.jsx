@@ -6,7 +6,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Textarea } from "../components/ui/textarea";
-import { ArrowUp, Eye, ChatCircle, ArrowSquareOut, GithubLogo, TwitterLogo, Globe, ArrowLeft, Monitor, LinkSimple, LinkedinLogo } from "@phosphor-icons/react";
+import { ArrowUp, Eye, ChatCircle, ArrowSquareOut, GithubLogo, TwitterLogo, Globe, ArrowLeft, Monitor, LinkSimple, LinkedinLogo, PencilSimple } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { Skeleton } from "../components/ui/skeleton";
@@ -133,13 +133,18 @@ export default function ProjectDetailPage() {
                 >
                   <ArrowUp size={16} weight="bold" /> Upvote · {upCount}
                 </button>
-                {project.github_url && (
-                  <a href={project.github_url} target="_blank" rel="noreferrer">
-                    <Button variant="outline" className="rounded-sm gap-2">
-                      <GithubLogo size={16} weight="bold" /> GitHub
+                  {project.github_url && (
+                    <a href={project.github_url} target="_blank" rel="noreferrer">
+                      <Button variant="outline" className="rounded-sm gap-2">
+                        <GithubLogo size={16} weight="bold" /> GitHub
+                      </Button>
+                    </a>
+                  )}
+                  {user && (user._id === project.makerId || user.id === project.maker_id) && (
+                    <Button variant="outline" className="rounded-sm gap-2" data-testid="edit-project-button">
+                      <PencilSimple size={16} /> Edit
                     </Button>
-                  </a>
-                )}
+                  )}
               </div>
             </div>
           </div>
