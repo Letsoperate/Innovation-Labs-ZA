@@ -442,14 +442,22 @@ async def icon_proxy(slug: str, color: str = ""):
 @api.post("/generate-video")
 async def generate_video(url: str):
     ext_url = os.environ.get("VIDEO_GEN_URL", "")
+    api_key = os.environ.get("VIDEO_GEN_KEY", "")
     if ext_url:
         try:
             async with httpx.AsyncClient(timeout=120) as c:
-                r = await c.post(f"{ext_url}/generate?url={urllib.parse.quote(url)}")
+                headers = {}
+                if api_key: headers["X-API-Key"] = api_key
+                r = await c.get(f"{ext_url}/api/generate?url={urllib.parse.quote(url)}", headers=headers)
                 if r.status_code == 200:
+                    ct = r.headers.get("content-type", "")
+                    if "video" in ct:
+                        vid_path = f"/tmp/preview_{uuid.uuid4()}.mp4"
+                        Path(vid_path).write_bytes(r.content)
+                        return {"ok": True, "video_url": f"/api/files/local/{Path(vid_path).name}", "local_path": vid_path}
                     data = r.json()
-                    if data.get("ok") and data.get("video_url"):
-                        return {"ok": True, "video_url": f"{ext_url}{data['video_url']}"}
+                    if data.get("success") and data.get("data", {}).get("frames_base64"):
+                        return {"ok": True, "frames": data["data"]["frames_base64"], "note": "Video unavailable, frames returned"}
         except Exception as e:
             logger.warning(f"Video gen failed: {e}")
     return {"ok": False, "message": "Video generation requires a headless browser. Please use urltovideo.com and paste the video URL back.", "generate_url": f"https://urltovideo.com?url={urllib.parse.quote(url)}"}
