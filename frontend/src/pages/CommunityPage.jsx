@@ -8,7 +8,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import {
-  Plus, Hash, Compass, Lightning, Trophy, Users, Rocket, Note, X
+  ChatCircle, Plus, Hash, Compass, Lightning, Trophy, Users, Rocket, Note, X
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import PostCard from "../components/PostCard";

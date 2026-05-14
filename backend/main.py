@@ -409,10 +409,13 @@ async def proxy(url: str):
         async with httpx.AsyncClient(timeout=20, follow_redirects=True) as c:
             r = await c.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
             ct = r.headers.get("content-type", "text/html")
-            headers = {"X-Frame-Options": "ALLOWALL", "Content-Security-Policy": ""}
+            headers = {"X-Frame-Options": "ALLOWALL", "Content-Security-Policy": "frame-ancestors *;", "Access-Control-Allow-Origin": "*"}
             content = r.content
             if "text/html" in ct:
                 html = content.decode("utf-8", errors="replace")
+                base = url.rstrip("/")
+                import re
+                html = re.sub(r'(src|href|action)=["\'](/(?!/))(["\'#])', lambda m: f'{m.group(1)}="{base}{m.group(2)}"' + m.group(3).replace('"', ''), html)
                 html = html.replace("<head>", f'<head><base href="{url}">', 1)
                 content = html.encode("utf-8")
             return Response(content=content, media_type=ct, headers=headers)
