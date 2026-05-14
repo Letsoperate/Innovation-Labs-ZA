@@ -23,6 +23,9 @@ export default function ProjectDetailPage() {
   const [posting, setPosting] = useState(false);
   const [hasUp, setHasUp] = useState(false);
   const [upCount, setUpCount] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", tagline: "", description: "", website_url: "", tags: "", tech_stack: "" });
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -141,7 +144,7 @@ export default function ProjectDetailPage() {
                     </a>
                   )}
                   {user && (user._id === project.makerId || user.id === project.maker_id) && (
-                    <Button variant="outline" className="rounded-sm gap-2" data-testid="edit-project-button">
+                    <Button onClick={() => { setEditForm({ name: project.name, tagline: project.tagline, description: project.description, website_url: project.website_url, tags: (project.tags || []).join(", "), tech_stack: (project.tech_stack || []).join(", ") }); setEditing(true); }} variant="outline" className="rounded-sm gap-2" data-testid="edit-project-button">
                       <PencilSimple size={16} /> Edit
                     </Button>
                   )}
@@ -289,6 +292,40 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
             </aside>
+
+            {editing && (
+              <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setEditing(false)}>
+                <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                  <h3 className="font-heading font-bold text-lg mb-4">Edit Project</h3>
+                  <div className="space-y-3">
+                    <div><label className="text-xs font-medium">Name</label><input value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" /></div>
+                    <div><label className="text-xs font-medium">Tagline</label><input value={editForm.tagline} onChange={(e) => setEditForm({...editForm, tagline: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" /></div>
+                    <div><label className="text-xs font-medium">Description</label><textarea value={editForm.description} onChange={(e) => setEditForm({...editForm, description: e.target.value})} className="w-full min-h-20 px-3 py-2 border border-border rounded-xl text-sm bg-background mt-1 resize-none" /></div>
+                    <div><label className="text-xs font-medium">Website</label><input value={editForm.website_url} onChange={(e) => setEditForm({...editForm, website_url: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" /></div>
+                    <div><label className="text-xs font-medium">Tags (comma-separated)</label><input value={editForm.tags} onChange={(e) => setEditForm({...editForm, tags: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" /></div>
+                    <div><label className="text-xs font-medium">Tech stack (comma-separated)</label><input value={editForm.tech_stack} onChange={(e) => setEditForm({...editForm, tech_stack: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" /></div>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-5">
+                    <button onClick={() => setEditing(false)} className="px-4 py-2 border border-border rounded-xl text-sm hover:bg-secondary transition-colors">Cancel</button>
+                    <button onClick={async () => {
+                      setSaving(true);
+                      try {
+                        const payload = {
+                          name: editForm.name, tagline: editForm.tagline, description: editForm.description,
+                          website_url: editForm.website_url, tags: editForm.tags.split(",").map(t=>t.trim()).filter(Boolean),
+                          tech_stack: editForm.tech_stack.split(",").map(t=>t.trim()).filter(Boolean),
+                        };
+                        await api.patch(`/projects/${slug}`, payload);
+                        toast.success("Project updated!");
+                        setEditing(false);
+                        load();
+                      } catch { toast.error("Failed to update"); }
+                      finally { setSaving(false); }
+                    }} disabled={saving} className="px-4 py-2 bg-primary text-white rounded-xl text-sm hover:bg-primary/90 transition-colors">{saving ? "Saving..." : "Save changes"}</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </FadeIn>
       </div>
