@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import api from "../lib/api";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import ProjectCard from "./ProjectCard";
@@ -10,21 +10,22 @@ export default function Leaderboard({ defaultPeriod = "all", limit = 10, compact
   const [period, setPeriod] = useState(defaultPeriod);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const firstLoad = useRef(true);
 
-  const load = useCallback(async (p) => {
-    setLoading(true);
+  const load = useCallback(async (p, silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const { data } = await api.get(`/projects/leaderboard`, { params: { period: p, limit } });
       setProjects(data);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [limit]);
 
   useEffect(() => { load(period); }, [period, load]);
 
   useEffect(() => {
-    const iv = setInterval(() => load(period), 15000);
+    const iv = setInterval(() => load(period, true), 1000);
     return () => clearInterval(iv);
   }, [period, load]);
 
