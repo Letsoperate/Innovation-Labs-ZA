@@ -334,7 +334,7 @@ async def delete_banner(bid: str, u: dict = Depends(get_current_user)):
 async def proxy(url: str):
     try:
         async with httpx.AsyncClient(timeout=20, follow_redirects=True) as c:
-            r = await c.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"})
+            r = await c.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
             ct = r.headers.get("content-type", "text/html")
             headers = {"X-Frame-Options": "ALLOWALL", "Content-Security-Policy": ""}
             content = r.content
@@ -345,6 +345,17 @@ async def proxy(url: str):
             return Response(content=content, media_type=ct, headers=headers)
     except Exception as e:
         raise HTTPException(502, f"Proxy failed: {e}")
+
+@api.get("/icon")
+async def icon_proxy(slug: str, color: str = ""):
+    try:
+        url = f"https://cdn.simpleicons.org/{slug}"
+        if color: url += f"/{color}"
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get(url, headers={"User-Agent": "Mozilla/5.0"})
+            return Response(content=r.content, media_type=r.headers.get("content-type", "image/svg+xml"))
+    except Exception as e:
+        raise HTTPException(502, f"Icon proxy failed: {e}")
 
 @api.get("/stats")
 async def stats():

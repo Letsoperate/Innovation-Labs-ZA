@@ -131,7 +131,7 @@ function MarqueeRow({ tools, reverse }) {
             className="flex-shrink-0 flex items-center justify-center w-12 h-12 border border-border/30 hover:border-foreground/40 hover:bg-secondary/40 transition-colors rounded-md"
           >
             <img
-              src={`https://cdn.simpleicons.org/${tool.slug}/${tool.color}`}
+              src={`/_/backend/api/icon?slug=${tool.slug}&color=${tool.color}`}
               alt={tool.name}
               className="w-6 h-6"
               loading="eager"
