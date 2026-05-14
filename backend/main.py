@@ -1,4 +1,4 @@
-import os, uuid, json, hashlib, logging, secrets, httpx, jwt, time
+import os, uuid, json, hashlib, logging, secrets, httpx, jwt, time, urllib.parse
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Response, UploadFile, File
@@ -438,6 +438,10 @@ async def icon_proxy(slug: str, color: str = ""):
             return Response(content=r.content, media_type=r.headers.get("content-type", "image/svg+xml"))
     except Exception as e:
         raise HTTPException(502, f"Icon proxy failed: {e}")
+
+@api.post("/generate-video")
+async def generate_video(url: str):
+    return {"ok": False, "message": "Video generation requires a headless browser. Please use urltovideo.com and paste the video URL back.", "generate_url": f"https://urltovideo.com?url={urllib.parse.quote(url)}"}
 
 @api.get("/stats")
 async def stats():

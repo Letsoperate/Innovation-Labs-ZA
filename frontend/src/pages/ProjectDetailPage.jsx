@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import api, { fileUrl } from "../lib/api";
 import { FadeIn } from "../components/Motion";
+import VideoPreview from "../components/VideoPreview";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
@@ -165,37 +166,7 @@ export default function ProjectDetailPage() {
                 <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
               </section>
 
-              {project.video_url && (
-                <section>
-                  <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">
-                    <VideoCamera size={22} /> Video Preview
-                  </h2>
-                  <div className="border border-border overflow-hidden rounded-xl">
-                    <video src={project.video_url} controls className="w-full max-h-[500px]" poster={project.screenshots?.[0] || project.cover_image_url}>
-                      Your browser doesn't support video playback.
-                    </video>
-                  </div>
-                </section>
-              )}
-
-              {!project.video_url && project.website_url && (
-                <section>
-                  <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">
-                    <VideoCamera size={22} /> Video Preview
-                  </h2>
-                  <div className="border border-dashed border-border rounded-xl p-8 text-center bg-secondary/20">
-                    <VideoCamera size={32} className="mx-auto text-muted-foreground mb-3" />
-                    <p className="font-semibold text-sm mb-1">No video preview yet</p>
-                    <p className="text-xs text-muted-foreground mb-4">Create a 5-second video of your website instantly with AI.</p>
-                    <a href={`https://urltovideo.com?url=${encodeURIComponent(project.website_url)}`} target="_blank" rel="noreferrer">
-                      <Button className="bg-primary hover:bg-primary/90 rounded-full gap-2">
-                        <VideoCamera size={16} /> Generate Video Preview
-                      </Button>
-                    </a>
-                    <p className="text-xs text-muted-foreground mt-3">Powered by <a href="https://urltovideo.com" target="_blank" rel="noreferrer" className="text-primary hover:underline">urltovideo.com</a>. Paste the video link back to display it here.</p>
-                  </div>
-                </section>
-              )}
+              {project.website_url && <VideoPreview project={project} onVideoGenerated={(url) => load()} />}
 
               {Array.isArray(project.screenshots) && project.screenshots.length > 0 && (
                 <section>
