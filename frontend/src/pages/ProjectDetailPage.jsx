@@ -32,6 +32,9 @@ export default function ProjectDetailPage() {
     try {
       const cached = location.state?.project;
       if (cached && cached.slug === slug) {
+        for (const f of ["screenshots", "tags", "tech_stack"]) {
+          if (typeof cached[f] === "string") { try { cached[f] = JSON.parse(cached[f]); } catch { cached[f] = []; } }
+        }
         setProject(cached);
         setHasUp(!!cached.has_upvoted);
         setUpCount(cached.upvotes_count);
@@ -40,6 +43,7 @@ export default function ProjectDetailPage() {
         return;
       }
       const { data } = await api.get(`/projects/${slug}`);
+      if (typeof data.screenshots === "string") { try { data.screenshots = JSON.parse(data.screenshots); } catch { data.screenshots = []; } }
       setProject(data);
       setHasUp(!!data.has_upvoted);
       setUpCount(data.upvotes_count);
@@ -174,7 +178,7 @@ export default function ProjectDetailPage() {
                 </section>
               )}
 
-              {project.screenshots && project.screenshots.length > 0 && (
+              {Array.isArray(project.screenshots) && project.screenshots.length > 0 && (
                 <section>
                   <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">
                     <Monitor size={22} /> Screenshots
