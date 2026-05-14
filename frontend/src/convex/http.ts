@@ -21,6 +21,7 @@ http.route({
         case "getUpvote": result = await ctx.runQuery(api.operations.getUpvote, { projectId: url.searchParams.get("projectId")!, userId: url.searchParams.get("userId")! }); break;
         case "getBookmark": result = await ctx.runQuery(api.operations.getBookmark, { projectId: url.searchParams.get("projectId")!, userId: url.searchParams.get("userId")! }); break;
         case "getComments": result = await ctx.runQuery(api.operations.getComments, { projectId: url.searchParams.get("projectId")! }); break;
+        case "listUsers": result = await ctx.runQuery(api.auth.listUsers, {}); break;
         case "getBanners": result = await ctx.runQuery(api.operations.getBanners, {}); break;
         case "listChannels": result = await ctx.runQuery(api.community.listChannels, {}); break;
         case "listPosts": result = await ctx.runQuery(api.community.listPosts, { channelSlug: url.searchParams.get("channel") || undefined, sort: url.searchParams.get("sort") || "new", limit: parseInt(url.searchParams.get("limit") || "50") }); break;
