@@ -39,7 +39,7 @@ export default function CommunityPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [activeChannel, sort]);
+  useEffect(() => { load(); }, [activeChannel, sort, load]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
