@@ -1,4 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import BrowseDropdown from "./BrowseDropdown";
 import { Button } from "./ui/button";
