@@ -38,6 +38,7 @@ export default function SubmitProjectPage() {
     tags: "",
     tech_stack: "",
     cover_image_url: "",
+    screenshots: [],
   });
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -57,7 +58,7 @@ export default function SubmitProjectPage() {
       const fd = new FormData();
       fd.append("file", file);
       const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
-      update("cover_image_url", data.url);
+      update("screenshots", [...(form.screenshots || []), data.url]);
       toast.success("Image uploaded");
     } catch (err) {
       toast.error(formatApiErrorDetail(err.response?.data?.detail));
@@ -74,6 +75,7 @@ export default function SubmitProjectPage() {
         ...form,
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
         tech_stack: form.tech_stack.split(",").map((t) => t.trim()).filter(Boolean),
+        screenshots: JSON.stringify(form.screenshots),
       };
       const { data } = await api.post("/projects", payload);
       toast.success("Project submitted!");
@@ -155,16 +157,25 @@ export default function SubmitProjectPage() {
               <>
                 <h2 className="font-heading font-bold text-xl mb-4">Final touches</h2>
                 <div>
-                  <Label>Screenshot of your website</Label>
-                  <p className="text-xs text-muted-foreground mb-2">Upload a screenshot of your deployed project.</p>
-                  <div className="mt-2 border border-dashed border-border p-6 text-center bg-secondary/30">
-                    {form.cover_image_url ? (
-                      <div className="relative inline-block">
-                        <img src={form.cover_image_url.startsWith("/api") ? process.env.REACT_APP_BACKEND_URL + form.cover_image_url : form.cover_image_url} alt="" className="max-h-48 mx-auto border border-border" />
-                        <button type="button" onClick={() => update("cover_image_url", "")} className="absolute -top-2 -right-2 w-6 h-6 bg-foreground text-background flex items-center justify-center">
-                          <X size={12} weight="bold" />
-                        </button>
+                  <Label>Screenshots</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Upload one or more screenshots of your deployed project.</p>
+                  <div className="space-y-3">
+                    {(form.screenshots || []).map((s, i) => (
+                      <div key={i} className="relative inline-block">
+                        <img src={s.startsWith("/api") ? process.env.REACT_APP_BACKEND_URL + s : s} alt="" className="max-h-48 mx-auto border border-border" />
+                        <button type="button" onClick={() => update("screenshots", form.screenshots.filter((_, j) => j !== i))} className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground flex items-center justify-center rounded-full text-xs"><X size={10} weight="bold" /></button>
                       </div>
+                    ))}
+                    <div className="border border-dashed border-border p-6 text-center bg-secondary/30">
+                      <UploadSimple size={28} className="mx-auto text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mt-2">PNG, JPG, WebP up to 5MB each</p>
+                      <input id="upload" type="file" accept="image/*" onChange={onUpload} className="hidden" data-testid="upload-input" />
+                      <label htmlFor="upload" className="inline-block mt-3 px-4 py-2 border border-foreground/20 text-sm font-medium cursor-pointer hover:bg-foreground hover:text-background transition-colors rounded-sm">
+                        {uploading ? "Uploading..." : "Choose file"}
+                      </label>
+                    </div>
+                  </div>
+                </div>
                     ) : (
                       <>
                         <UploadSimple size={28} className="mx-auto text-muted-foreground" />
