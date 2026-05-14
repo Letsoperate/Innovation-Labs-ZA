@@ -116,6 +116,7 @@ def apply_crowns(ps):
 async def annotate(ps, uid):
     out=[]
     for p in ps:
+        p["id"]=p.get("_id","") or p.get("id","")
         p["score"]=project_score(p); p["badges"]=compute_badges(p); p["has_upvoted"]=False; p["has_bookmarked"]=False
         for a,b in [("upvotesCount","upvotes_count"),("viewsCount","views_count"),("commentsCount","comments_count"),("bookmarksCount","bookmarks_count"),("createdAt","created_at"),("websiteUrl","website_url"),("githubUrl","github_url"),("makerId","maker_id"),("coverImageUrl","cover_image_url")]:
             if a in p: p[b]=p[a]
@@ -384,6 +385,8 @@ async def og_project(slug: str):
 <p><a href="{url}">View on Innovation Lab ZA</a></p>
 </body></html>"""
     return Response(content=html, media_type="text/html")
+
+@api.get("/proxy")
 async def proxy(url: str):
     try:
         async with httpx.AsyncClient(timeout=20, follow_redirects=True) as c:
