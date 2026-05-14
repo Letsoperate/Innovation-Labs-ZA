@@ -118,7 +118,7 @@ async def annotate(ps, uid):
     for p in ps:
         p["id"]=p.get("_id","") or p.get("id","")
         p["score"]=project_score(p); p["badges"]=compute_badges(p); p["has_upvoted"]=False; p["has_bookmarked"]=False
-        for a,b in [("upvotesCount","upvotes_count"),("viewsCount","views_count"),("commentsCount","comments_count"),("bookmarksCount","bookmarks_count"),("createdAt","created_at"),("websiteUrl","website_url"),("githubUrl","github_url"),("makerId","maker_id"),("coverImageUrl","cover_image_url")]:
+        for a,b in [("upvotesCount","upvotes_count"),("viewsCount","views_count"),("commentsCount","comments_count"),("bookmarksCount","bookmarks_count"),("createdAt","created_at"),("websiteUrl","website_url"),("githubUrl","github_url"),("makerId","maker_id"),("coverImageUrl","cover_image_url"),("videoUrl","video_url")]:
             if a in p: p[b]=p[a]
         try: p["tags"]=json.loads(p.get("tags","[]"))
         except: p["tags"]=[]
@@ -140,7 +140,7 @@ class ProfileUpd(BaseModel):
     name: Optional[str]=None; bio: Optional[str]=None; twitter: Optional[str]=None; github: Optional[str]=None; website: Optional[str]=None; avatar_url: Optional[str]=None
 class ProjCreate(BaseModel):
     name: str; tagline: str; description: str; website_url: str; category: str
-    tags: List[str]=[]; tech_stack: List[str]=[]; cover_image_url: Optional[str]=None; github_url: Optional[str]=None; screenshots: Optional[str]=None
+    tags: List[str]=[]; tech_stack: List[str]=[]; cover_image_url: Optional[str]=None; github_url: Optional[str]=None; screenshots: Optional[str]=None; video_url: Optional[str]=None
 class ProjUpdate(BaseModel):
     name: Optional[str]=None; tagline: Optional[str]=None; description: Optional[str]=None; website_url: Optional[str]=None; category: Optional[str]=None
     tags: Optional[List[str]]=None; tech_stack: Optional[List[str]]=None; cover_image_url: Optional[str]=None; github_url: Optional[str]=None
@@ -246,7 +246,7 @@ async def create_project(p: ProjCreate, u: dict = Depends(get_current_user)):
     try:
         pid=str(uuid.uuid4()); slug="-".join(p.name.lower().split())[:60]+"-"+pid[:6]
         n=datetime.now(timezone.utc).isoformat()
-        await cv_create_project(id=pid,slug=slug,name=p.name,tagline=p.tagline,description=p.description,websiteUrl=p.website_url,githubUrl=p.github_url or "",category=p.category,tags=json.dumps(p.tags),techStack=json.dumps(p.tech_stack),coverImageUrl=p.cover_image_url or "",makerId=u["_id"],createdAt=n,screenshots=p.screenshots or "[]")
+        await cv_create_project(id=pid,slug=slug,name=p.name,tagline=p.tagline,description=p.description,websiteUrl=p.website_url,githubUrl=p.github_url or "",category=p.category,tags=json.dumps(p.tags),techStack=json.dumps(p.tech_stack),coverImageUrl=p.cover_image_url or "",makerId=u["_id"],createdAt=n,screenshots=p.screenshots or "[]",videoUrl=p.video_url or "")
         return await cv_get_project(slug)
     except Exception as e:
         raise HTTPException(500, detail=str(e))

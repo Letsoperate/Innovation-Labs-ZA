@@ -153,6 +153,19 @@ export default function ProjectDetailPage() {
                 <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{project.description}</p>
               </section>
 
+              {project.video_url && (
+                <section>
+                  <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">
+                    <Monitor size={22} /> Video Preview
+                  </h2>
+                  <div className="border border-border overflow-hidden">
+                    <video src={project.video_url} controls className="w-full max-h-[500px]" poster={project.screenshots?.[0] || project.cover_image_url}>
+                      Your browser doesn't support video playback.
+                    </video>
+                  </div>
+                </section>
+              )}
+
               {project.screenshots && project.screenshots.length > 0 && (
                 <section>
                   <h2 className="font-heading font-bold text-2xl mb-4 flex items-center gap-2">

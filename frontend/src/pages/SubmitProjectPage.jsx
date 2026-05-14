@@ -39,6 +39,7 @@ export default function SubmitProjectPage() {
     tech_stack: "",
     cover_image_url: "",
     screenshots: [],
+    video_url: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -76,6 +77,7 @@ export default function SubmitProjectPage() {
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
         tech_stack: form.tech_stack.split(",").map((t) => t.trim()).filter(Boolean),
         screenshots: JSON.stringify(form.screenshots),
+        video_url: form.video_url || "",
       };
       const { data } = await api.post("/projects", payload);
       toast.success("Project submitted!");
@@ -175,6 +177,11 @@ export default function SubmitProjectPage() {
                       </label>
                     </div>
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="video">Video Preview URL</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Optional. Generate a 2-5s video at <a href="https://urltovideo.com" target="_blank" rel="noreferrer" className="text-primary underline">urltovideo.com</a> and paste the link here.</p>
+                  <Input id="video" type="url" value={form.video_url} onChange={(e) => update("video_url", e.target.value)} className="rounded-sm mt-1" placeholder="https://urltovideo.com/v/abc123" />
                 </div>
                 <div>
                   <Label htmlFor="tags">Tags <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>

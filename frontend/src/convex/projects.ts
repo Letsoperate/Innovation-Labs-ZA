@@ -82,6 +82,7 @@ export const createProject = mutation({
     upvotesCount: v.optional(v.number()), viewsCount: v.optional(v.number()),
     commentsCount: v.optional(v.number()), bookmarksCount: v.optional(v.number()),
     screenshots: v.optional(v.string()),
+    videoUrl: v.optional(v.string()),
   }),
   handler: async (ctx, args) => {
     const { id, ...data } = args;
