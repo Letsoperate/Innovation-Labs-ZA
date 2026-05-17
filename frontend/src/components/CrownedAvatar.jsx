@@ -69,7 +69,7 @@ export default function CrownedAvatar({ rank, avatarUrl, name, initials }) {
 
       {/* Floating Crown */}
       <span style={{
-        position: "absolute", top: "-22px", left: "50%", transform: "translateX(-50%)",
+        position: "absolute", top: "-18px", left: "50%", transform: "translateX(-50%)",
         zIndex: 20, animation: `crown-float-${rank} 3s ease-in-out infinite`,
         filter: `drop-shadow(0 4px 8px ${c.ring}80)`,
         pointerEvents: "none",

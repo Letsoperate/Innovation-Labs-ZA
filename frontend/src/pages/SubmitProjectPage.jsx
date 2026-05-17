@@ -44,6 +44,7 @@ export default function SubmitProjectPage() {
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
 
   if (checked && !user) {
     navigate("/login");
@@ -83,6 +84,24 @@ export default function SubmitProjectPage() {
       toast.error(formatApiErrorDetail(err.response?.data?.detail));
     } finally {
       setCoverUploading(false);
+    }
+  };
+
+  const onVideoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) { toast.error("Video must be under 50MB"); return; }
+    setVideoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const { data } = await api.post("/upload", fd);
+      update("video_url", data.data_url || data.url);
+      toast.success("Video uploaded");
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err.response?.data?.detail));
+    } finally {
+      setVideoUploading(false);
     }
   };
 
@@ -152,6 +171,29 @@ export default function SubmitProjectPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label>Project Icon</Label>
+                  <p className="text-xs text-muted-foreground mb-2">A logo or thumbnail to represent your project.</p>
+                  <div className="flex items-center gap-3">
+                    {form.cover_image_url ? (
+                      <div className="relative">
+                        <img src={form.cover_image_url} alt="" className="w-16 h-16 rounded-xl border border-border object-cover" />
+                        <button type="button" onClick={() => update("cover_image_url", "")} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive text-white flex items-center justify-center rounded-full text-[10px]"><X size={8} weight="bold" /></button>
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-secondary/30">
+                        <ImageSquare size={22} className="text-muted-foreground/40" />
+                      </div>
+                    )}
+                    <div>
+                      <input id="icon-upload" type="file" accept="image/*" onChange={onCoverUpload} className="hidden" />
+                      <label htmlFor="icon-upload" className="inline-block px-4 py-2 border border-border text-xs font-medium cursor-pointer hover:bg-foreground hover:text-background transition-colors rounded-sm">
+                        {coverUploading ? "Uploading..." : form.cover_image_url ? "Change icon" : "Upload icon"}
+                      </label>
+                      <p className="text-[10px] text-muted-foreground mt-1">PNG, JPG, WebP</p>
+                    </div>
+                  </div>
+                </div>
               </>
             )}
 
@@ -177,27 +219,6 @@ export default function SubmitProjectPage() {
               <>
                 <h2 className="font-heading font-bold text-xl mb-4">Final touches</h2>
                 <div>
-                  <Label>Cover image</Label>
-                  <p className="text-xs text-muted-foreground mb-2">A thumbnail to represent your project on cards and listings.</p>
-                  <div className="space-y-3">
-                    {form.cover_image_url ? (
-                      <div className="relative inline-block">
-                        <img src={form.cover_image_url} alt="Cover" className="max-h-48 mx-auto border border-border rounded-lg" />
-                        <button type="button" onClick={() => update("cover_image_url", "")} className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground flex items-center justify-center rounded-full text-xs"><X size={10} weight="bold" /></button>
-                      </div>
-                    ) : (
-                      <div className="border border-dashed border-border p-6 text-center bg-secondary/30 rounded-lg">
-                        <ImageSquare size={28} className="mx-auto text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mt-2">PNG, JPG, WebP up to 5MB</p>
-                        <input id="cover-upload" type="file" accept="image/*" onChange={onCoverUpload} className="hidden" />
-                        <label htmlFor="cover-upload" className="inline-block mt-3 px-4 py-2 border border-foreground/20 text-sm font-medium cursor-pointer hover:bg-foreground hover:text-background transition-colors rounded-sm">
-                          {coverUploading ? "Uploading..." : "Choose cover image"}
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div>
                   <Label>Screenshots</Label>
                   <p className="text-xs text-muted-foreground mb-2">Upload one or more screenshots of your deployed project.</p>
                   <div className="space-y-3">
@@ -218,9 +239,31 @@ export default function SubmitProjectPage() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="video">Video Preview URL</Label>
-                  <p className="text-xs text-muted-foreground mb-2">Optional. Generate a free 5-second video at <a href={`https://urltovideo.com`} target="_blank" rel="noreferrer" className="text-primary underline">urltovideo.com</a> and paste the link here.</p>
-                  <Input id="video" type="url" value={form.video_url} onChange={(e) => update("video_url", e.target.value)} className="rounded-sm mt-1" placeholder="https://urltovideo.com/v/abc123" />
+                  <Label>Video Preview</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Upload a preview video or paste a URL.</p>
+                  <div className="space-y-3">
+                    {form.video_url ? (
+                      <div className="space-y-2">
+                        {form.video_url.startsWith("data:video") || form.video_url.startsWith("/api/files") ? (
+                          <video src={form.video_url} controls className="w-full max-h-48 border border-border rounded-lg" />
+                        ) : (
+                          <Input value={form.video_url} onChange={(e) => update("video_url", e.target.value)} className="rounded-sm" />
+                        )}
+                        <button type="button" onClick={() => update("video_url", "")} className="text-xs text-destructive hover:underline">Remove video</button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-3">
+                        <div>
+                          <input id="video-upload" type="file" accept="video/*" onChange={onVideoUpload} className="hidden" />
+                          <label htmlFor="video-upload" className="inline-flex items-center gap-1.5 px-4 py-2 border border-border text-xs font-medium cursor-pointer hover:bg-foreground hover:text-background transition-colors rounded-sm">
+                            <UploadSimple size={14} /> {videoUploading ? "Uploading..." : "Upload video"}
+                          </label>
+                        </div>
+                        <span className="text-xs text-muted-foreground self-center">or</span>
+                        <Input id="video" type="url" value="" onChange={(e) => update("video_url", e.target.value)} className="rounded-sm w-60" placeholder="https://urltovideo.com/v/abc123" />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="tags">Tags <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
