@@ -11,15 +11,21 @@ export default function Leaderboard({ defaultPeriod = "all", limit = 10, compact
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const mounted = useRef(true);
+  const controllerRef = useRef(null);
 
   useEffect(() => { return () => { mounted.current = false; }; }, []);
 
   const load = useCallback(async (p, silent = false) => {
+    if (controllerRef.current) controllerRef.current.abort();
+    const ctrl = new AbortController();
+    controllerRef.current = ctrl;
     if (!mounted.current) return;
     if (!silent) setLoading(true);
     try {
-      const { data } = await api.get(`/projects/leaderboard`, { params: { period: p, limit } });
+      const { data } = await api.get(`/projects/leaderboard`, { params: { period: p, limit }, signal: ctrl.signal });
       if (mounted.current) setProjects(data);
+    } catch (err) {
+      if (err.name === "CanceledError" || err.code === "ERR_CANCELED") return;
     } finally {
       if (!silent && mounted.current) setLoading(false);
     }
@@ -28,7 +34,7 @@ export default function Leaderboard({ defaultPeriod = "all", limit = 10, compact
   useEffect(() => { load(period); }, [period, load]);
 
   useEffect(() => {
-    const iv = setInterval(() => load(period, true), 1000);
+    const iv = setInterval(() => load(period, true), 8000);
     return () => { clearInterval(iv); mounted.current = false; };
   }, [period, load]);
 

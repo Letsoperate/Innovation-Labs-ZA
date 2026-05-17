@@ -9,7 +9,7 @@ import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from "sonner";
-import { UploadSimple, X, Plus, Rocket } from "@phosphor-icons/react";
+import { UploadSimple, X, Plus, Rocket, ImageSquare } from "@phosphor-icons/react";
 
 const CATEGORIES = [
   { slug: "ai", name: "AI & ML" },
@@ -43,6 +43,7 @@ export default function SubmitProjectPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
 
   if (checked && !user) {
     navigate("/login");
@@ -65,6 +66,23 @@ export default function SubmitProjectPage() {
       toast.error(formatApiErrorDetail(err.response?.data?.detail));
     } finally {
       setUploading(false);
+    }
+  };
+
+  const onCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const { data } = await api.post("/upload", fd);
+      update("cover_image_url", data.url);
+      toast.success("Cover image uploaded");
+    } catch (err) {
+      toast.error(formatApiErrorDetail(err.response?.data?.detail));
+    } finally {
+      setCoverUploading(false);
     }
   };
 
@@ -158,6 +176,27 @@ export default function SubmitProjectPage() {
             {step === 3 && (
               <>
                 <h2 className="font-heading font-bold text-xl mb-4">Final touches</h2>
+                <div>
+                  <Label>Cover image</Label>
+                  <p className="text-xs text-muted-foreground mb-2">A thumbnail to represent your project on cards and listings.</p>
+                  <div className="space-y-3">
+                    {form.cover_image_url ? (
+                      <div className="relative inline-block">
+                        <img src={form.cover_image_url.startsWith("/api") ? process.env.REACT_APP_BACKEND_URL + form.cover_image_url : form.cover_image_url} alt="Cover" className="max-h-48 mx-auto border border-border rounded-lg" />
+                        <button type="button" onClick={() => update("cover_image_url", "")} className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground flex items-center justify-center rounded-full text-xs"><X size={10} weight="bold" /></button>
+                      </div>
+                    ) : (
+                      <div className="border border-dashed border-border p-6 text-center bg-secondary/30 rounded-lg">
+                        <ImageSquare size={28} className="mx-auto text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground mt-2">PNG, JPG, WebP up to 5MB</p>
+                        <input id="cover-upload" type="file" accept="image/*" onChange={onCoverUpload} className="hidden" />
+                        <label htmlFor="cover-upload" className="inline-block mt-3 px-4 py-2 border border-foreground/20 text-sm font-medium cursor-pointer hover:bg-foreground hover:text-background transition-colors rounded-sm">
+                          {coverUploading ? "Uploading..." : "Choose cover image"}
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <div>
                   <Label>Screenshots</Label>
                   <p className="text-xs text-muted-foreground mb-2">Upload one or more screenshots of your deployed project.</p>
