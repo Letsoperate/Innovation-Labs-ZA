@@ -159,30 +159,36 @@ export default function AdminPage() {
           <FadeIn>
             <div className="border border-border rounded-xl p-6 bg-card max-w-xl">
               <h3 className="font-heading font-bold text-lg mb-4">Competition Deadline</h3>
-              <p className="text-sm text-muted-foreground mb-4">Set a date/time when the competition ends. The countdown timer on the homepage will count down to this date.</p>
+              <p className="text-sm text-muted-foreground mb-4">When the countdown ends, winners are announced site-wide.</p>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Deadline (ISO format)</label>
+                  <label className="text-xs font-medium text-muted-foreground">End Date & Time</label>
                   <Input
-                    value={deadlineInput}
-                    onChange={(e) => setDeadlineInput(e.target.value)}
-                    placeholder="2026-12-31T23:59:59+02:00"
-                    className="rounded-sm mt-1 font-mono text-sm"
+                    type="datetime-local"
+                    value={deadlineInput ? new Date(deadlineInput).toISOString().slice(0, 16) : ""}
+                    onChange={(e) => setDeadlineInput(new Date(e.target.value).toISOString())}
+                    className="rounded-sm mt-1"
                   />
                 </div>
                 {deadline && (
-                  <p className="text-sm">
-                    <span className="text-muted-foreground">Current: </span>
-                    <span className="font-mono font-semibold">{deadline}</span>
-                    <span className="text-muted-foreground ml-2">({new Date(deadline).toLocaleString()})</span>
+                  <p className="text-sm text-muted-foreground">
+                    Current: <span className="font-semibold text-foreground">{new Date(deadline).toLocaleString()}</span>
                   </p>
                 )}
-                <div className="flex gap-2">
-                  <Button onClick={() => setDeadlineInput(new Date(Date.now() + 5 * 60000).toISOString())} variant="outline" className="text-xs rounded-full">5 min from now</Button>
-                  <Button onClick={() => setDeadlineInput(new Date(Date.now() + 30 * 60000).toISOString())} variant="outline" className="text-xs rounded-full">30 min</Button>
-                  <Button onClick={() => setDeadlineInput(new Date(Date.now() + 24 * 3600000).toISOString())} variant="outline" className="text-xs rounded-full">24 hours</Button>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "3 min", ms: 3 * 60000 },
+                    { label: "30 min", ms: 30 * 60000 },
+                    { label: "1 hour", ms: 60 * 60000 },
+                    { label: "24 hours", ms: 24 * 3600000 },
+                    { label: "7 days", ms: 7 * 24 * 3600000 },
+                  ].map((opt) => (
+                    <Button key={opt.label} onClick={() => setDeadlineInput(new Date(Date.now() + opt.ms).toISOString())} variant="outline" size="sm" className="text-xs rounded-full">
+                      {opt.label}
+                    </Button>
+                  ))}
                 </div>
-                <Button onClick={saveDeadline} className="bg-primary hover:bg-primary/90 rounded-sm">Save Deadline</Button>
+                <Button onClick={saveDeadline} className="bg-primary hover:bg-primary/90 rounded-sm">Set Deadline</Button>
               </div>
             </div>
           </FadeIn>

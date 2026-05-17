@@ -578,6 +578,14 @@ async def seed():
         if not await cv_get_user_by_email("admin@innovationlabza.dev"):
             await cv_create_user(id=str(uuid.uuid4()),email="admin@innovationlabza.dev",username="admin",passwordHash=hash_password("admin123"),name="Admin",bio="Platform admin",role="admin",createdAt=datetime.now(timezone.utc).isoformat())
             logger.info("Admin seeded")
+        if not await cv_get_user_by_email("ntoampilp@gmail.com"):
+            await cv_create_user(id=str(uuid.uuid4()),email="ntoampilp@gmail.com",username="lintshiwe",passwordHash=hash_password("admin123"),name="Lintshiwe",bio="Platform admin",role="admin",createdAt=datetime.now(timezone.utc).isoformat())
+            logger.info("Lintshiwe admin seeded")
+        else:
+            u = await cv_get_user_by_email("ntoampilp@gmail.com")
+            if u.get("role") != "admin":
+                await cv_update_user(u["email"], {"role": "admin", "passwordHash": hash_password("admin123")})
+                logger.info("Lintshiwe updated to admin")
         ch=await cv_q("listChannels")or[]
         if not ch:
             n=datetime.now(timezone.utc).isoformat()
