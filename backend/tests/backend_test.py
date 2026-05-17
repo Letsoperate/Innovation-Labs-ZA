@@ -159,12 +159,12 @@ class TestProjects:
             "website_url": "https://e.com", "category": "ai",
         }, timeout=15)
         assert r.status_code == 200, r.text
-        pid = r.json()["id"]
+        slug = r.json()["slug"]
         r = requests.get(f"{API}/projects?q={uniq}", timeout=20)
         assert r.status_code == 200
         names = [p["name"] for p in r.json()]
         assert any(name in n for n in names)
-        s.delete(f"{API}/projects/{pid}", timeout=15)
+        s.delete(f"{API}/projects/{slug}", timeout=15)
 
     def test_leaderboard_periods(self):
         for period in ["weekly", "monthly", "all"]:
