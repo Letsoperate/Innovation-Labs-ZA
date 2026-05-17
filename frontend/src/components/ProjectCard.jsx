@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowUp, ChatCircle, Eye, ArrowUpRight, Crown, Fire, Rocket, Star, Lightning } from "@phosphor-icons/react";
+import { ArrowUp, ChatCircle, Eye, ArrowUpRight, Crown, Fire, Rocket, Star, Lightning, BookmarkSimple } from "@phosphor-icons/react";
 import { Badge } from "./ui/badge";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
@@ -20,6 +20,8 @@ export default function ProjectCard({ project, rank, onUpdate }) {
   const [busy, setBusy] = useState(false);
   const [hasUp, setHasUp] = useState(!!project.has_upvoted);
   const [count, setCount] = useState(project.upvotes_count || 0);
+  const [hasBookmark, setHasBookmark] = useState(!!project.has_bookmarked);
+  const [bmBusy, setBmBusy] = useState(false);
 
   const upvote = async (e) => {
     e.preventDefault();
@@ -36,6 +38,20 @@ export default function ProjectCard({ project, rank, onUpdate }) {
     finally { setBusy(false); }
   };
 
+  const bookmark = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { toast.error("Sign in to bookmark"); return; }
+    if (bmBusy) return;
+    setBmBusy(true);
+    try {
+      const { data } = await api.post(`/projects/${project.id}/bookmark`);
+      setHasBookmark(data.bookmarked ?? !hasBookmark);
+      onUpdate?.();
+    } catch { toast.error("Failed to bookmark"); }
+    finally { setBmBusy(false); }
+  };
+
   const isTop3 = rank <= 3;
   const crown = CROWN_STYLES[rank];
 
@@ -48,18 +64,18 @@ export default function ProjectCard({ project, rank, onUpdate }) {
       <Link
         to={`/p/${project.slug}`}
         state={{ project }}
-        className={`group relative block border bg-card hover:shadow-lg transition-all duration-300 p-5 ${
+        className={`group relative block border rounded-2xl bg-card hover:shadow-lg transition-all duration-300 p-5 ${
           isTop3 && crown ? `${crown.border} shadow-[${crown.glow}]` : "border-border hover:border-foreground/30"
         }`}
         style={isTop3 && crown ? { boxShadow: crown.glow } : undefined}
       >
         {isTop3 && crown && (
-          <div className="absolute -top-3 -right-3 z-10">
+          <div className="absolute -top-4 -right-4 z-10">
             <div className="relative">
-              <Crown size={28} weight="fill" className="drop-shadow-lg" style={{ color: crown.color }}>
-                <animateTransform attributeName="transform" type="rotate" values="0 14 14;-5 14 14;3 14 14;0 14 14" dur="2s" repeatCount="indefinite" />
+              <Crown size={42} weight="fill" className="drop-shadow-xl" style={{ color: crown.color }}>
+                <animateTransform attributeName="transform" type="rotate" values="0 21 21;-5 21 21;3 21 21;0 21 21" dur="2s" repeatCount="indefinite" />
               </Crown>
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-background border border-border/60 text-[9px] font-black tracking-wider" style={{ color: crown.text }}>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-background border border-border/60 text-[10px] font-black tracking-wider" style={{ color: crown.text }}>
                 #{rank}
               </div>
             </div>
@@ -77,15 +93,15 @@ export default function ProjectCard({ project, rank, onUpdate }) {
 
           {isTop3 && (
             <div className="flex-shrink-0 flex flex-col items-center justify-center w-10">
-              <div className={`relative w-8 h-8 rounded-lg bg-gradient-to-br ${crown.bg} flex items-center justify-center shadow-lg`}>
-                <Crown size={16} weight="fill" className="text-white drop-shadow" />
-                <div className="absolute inset-0 rounded-lg bg-white/20 shimmer" />
+              <div className={`relative w-10 h-10 rounded-xl bg-gradient-to-br ${crown.bg} flex items-center justify-center shadow-lg`}>
+                <Crown size={20} weight="fill" className="text-white drop-shadow" />
+                <div className="absolute inset-0 rounded-xl bg-white/20 shimmer" />
               </div>
             </div>
           )}
 
           <div className="flex-shrink-0">
-            <div className={`w-16 h-16 sm:w-20 sm:h-20 border bg-muted overflow-hidden ${isTop3 ? 'border-amber-500/30' : 'border-border'}`}>
+            <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl border bg-muted overflow-hidden ${isTop3 ? 'border-amber-500/30' : 'border-border'}`}>
               {project.cover_image_url ? (
                 <img src={fileUrl(project.cover_image_url)} alt={project.name} className="w-full h-full object-cover" loading="lazy" />
               ) : (
@@ -137,19 +153,34 @@ export default function ProjectCard({ project, rank, onUpdate }) {
                 </div>
               </div>
 
-              <button
-                onClick={upvote}
-                disabled={busy}
-                data-testid={`upvote-button-${project.slug}`}
-                className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-16 sm:w-16 sm:h-20 border transition-all active:scale-95 ${
-                  hasUp
-                    ? "bg-primary border-primary text-white"
-                    : "bg-background border-border text-foreground hover:border-primary hover:text-primary"
-                }`}
-              >
-                <ArrowUp size={18} weight="bold" />
-                <span className="font-heading font-bold text-base sm:text-lg leading-none mt-1">{count}</span>
-              </button>
+              <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                <button
+                  onClick={upvote}
+                  disabled={busy}
+                  data-testid={`upvote-button-${project.slug}`}
+                  className={`flex flex-col items-center justify-center w-14 h-16 sm:w-16 sm:h-20 rounded-xl border transition-all active:scale-95 ${
+                    hasUp
+                      ? "bg-primary border-primary text-white"
+                      : "bg-background border-border text-foreground hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  <ArrowUp size={18} weight="bold" />
+                  <span className="font-heading font-bold text-base sm:text-lg leading-none mt-1">{count}</span>
+                </button>
+                <button
+                  onClick={bookmark}
+                  disabled={bmBusy}
+                  data-testid={`bookmark-button-${project.slug}`}
+                  className={`flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl border transition-all active:scale-95 ${
+                    hasBookmark
+                      ? "bg-primary border-primary text-white"
+                      : "bg-background border-border text-foreground hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  <BookmarkSimple size={18} weight={hasBookmark ? "fill" : "bold"} />
+                  <span className="font-heading font-bold text-xs leading-none mt-0.5">{project.bookmarks_count || 0}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
