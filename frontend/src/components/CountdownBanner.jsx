@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import api from "../lib/api";
 import { Trophy, Timer, X } from "@phosphor-icons/react";
 
-const COMPETITION_DURATION_MINUTES = 3;
 const crownSvgs = ["/crown-gold.svg", "/crown-silver.svg", "/crown-bronze.svg"];
 
 export default function CountdownBanner() {
@@ -14,26 +13,34 @@ export default function CountdownBanner() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const end = new Date(Date.now() + COMPETITION_DURATION_MINUTES * 60 * 1000);
-    setEndTime(end);
-    const tick = () => {
-      const now = new Date();
-      const diff = end.getTime() - now.getTime();
-      if (diff <= 0) {
+    api.get("/competition-deadline").then((r) => {
+      const d = r.data?.deadline;
+      const end = d ? new Date(d) : new Date(Date.now() + 3 * 60 * 1000);
+      if (end.getTime() <= Date.now()) {
         setEnded(true);
         api.get("/projects/leaderboard", { params: { period: "all", limit: 3 } }).then((r) => setWinners(r.data)).catch(() => {});
         return;
       }
-      setTimeLeft({
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / (1000 * 60)) % 60),
-        seconds: Math.floor((diff / 1000) % 60),
-      });
-    };
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
+      setEndTime(end);
+      const tick = () => {
+        const now = new Date();
+        const diff = end.getTime() - now.getTime();
+        if (diff <= 0) {
+          setEnded(true);
+          api.get("/projects/leaderboard", { params: { period: "all", limit: 3 } }).then((r) => setWinners(r.data)).catch(() => {});
+          return;
+        }
+        setTimeLeft({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((diff / (1000 * 60)) % 60),
+          seconds: Math.floor((diff / 1000) % 60),
+        });
+      };
+      tick();
+      const interval = setInterval(tick, 1000);
+      return () => clearInterval(interval);
+    }).catch(() => {});
   }, []);
 
   if (!endTime) return null;

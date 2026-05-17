@@ -379,6 +379,10 @@ async def delete_banner(bid: str, u: dict = Depends(get_current_user)):
 
 _competition_deadline = None
 
+@api.get("/competition-deadline")
+async def get_public_deadline():
+    return {"deadline": _competition_deadline}
+
 @api.get("/admin/competition-deadline")
 async def get_competition_deadline(u: dict = Depends(get_current_user)):
     if u.get("role")!="admin": raise HTTPException(403,"Admin only")
@@ -400,7 +404,7 @@ async def list_users(limit: int = 100, u: dict = Depends(get_current_user)):
 @api.patch("/admin/users/{uid}/role")
 async def set_user_role(uid: str, role: str, u: dict = Depends(get_current_user)):
     if u.get("role")!="admin": raise HTTPException(403,"Admin only")
-    target = await cv_get_user_by_id(uid)
+    target = await cv_q("getUserByEmail", email=uid) or await cv_get_user_by_id(uid)
     if not target: raise HTTPException(404,"User not found")
     await cv_update_user(target["email"], {"role": role})
     return {"ok": True}
