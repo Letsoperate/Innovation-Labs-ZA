@@ -3,15 +3,17 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import BrowseDropdown from "./BrowseDropdown";
 import { Button } from "./ui/button";
-import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket, CaretDown } from "@phosphor-icons/react";
+import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket, CaretDown, Crown } from "@phosphor-icons/react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { fileUrl } from "../lib/api";
+import api from "../lib/api";
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [crownRank, setCrownRank] = useState(0);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -19,7 +21,26 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    api.get("/projects/leaderboard?period=all&limit=10").then(({ data }) => {
+      if (cancelled) return;
+      for (let i = 0; i < Math.min(3, data.length); i++) {
+        if (data[i].maker?.id === user.id) {
+          setCrownRank(i + 1);
+          return;
+        }
+      }
+      setCrownRank(0);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   const initials = (user?.name || user?.username || "U").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+
+  const crownColor = crownRank === 1 ? "#FFD700" : crownRank === 2 ? "#C0C0C0" : "#CD7F32";
+  const crownGlow = crownRank === 1 ? "0 0 10px rgba(255,215,0,0.6)" : crownRank === 2 ? "0 0 8px rgba(192,192,192,0.5)" : "0 0 6px rgba(205,127,50,0.4)";
 
   return (
     <header
@@ -51,7 +72,10 @@ export default function Header() {
 
           {user ? (
             <div className="relative group">
-              <button data-testid="user-menu-trigger" className="rounded-full transition-transform duration-200 group-hover:scale-105">
+              <button data-testid="user-menu-trigger" className="rounded-full transition-transform duration-200 group-hover:scale-105 relative">
+                {crownRank > 0 && (
+                  <Crown size={16} weight="fill" className="absolute -top-1.5 -right-1.5 z-10 drop-shadow" style={{ color: crownColor, filter: `drop-shadow(${crownGlow})` }} />
+                )}
                 <Avatar className="h-9 w-9 ring-1 ring-border rounded-full ring-offset-2 ring-offset-background">
                   <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} className="rounded-full" />
                   <AvatarFallback className="bg-foreground text-background font-semibold rounded-full">

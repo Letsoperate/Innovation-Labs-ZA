@@ -372,6 +372,8 @@ async def delete_banner(bid: str, u: dict = Depends(get_current_user)):
 @api.get("/community/channels")
 async def list_channels():
     r=await cv_q("listChannels") or []
+    for c in r:
+        if isinstance(c, dict) and "_id" in c: del c["_id"]
     return r
 
 @api.get("/community/posts")
@@ -504,7 +506,10 @@ async def get_file(name: str):
 async def stats():
     try:
         ps=await cv_list_projects(sort="recent",limit=9999)
-        return{"projects":len(ps),"makers":0,"upvotes":0,"comments":0}
+        makers=len(set(p.get("makerId","") for p in ps if p.get("makerId")))
+        upvotes=sum(p.get("upvotesCount",0)or 0 for p in ps)
+        comments=sum(p.get("commentsCount",0)or 0 for p in ps)
+        return{"projects":len(ps),"makers":makers,"upvotes":upvotes,"comments":comments}
     except:
         return{"projects":0,"makers":0,"upvotes":0,"comments":0}
 

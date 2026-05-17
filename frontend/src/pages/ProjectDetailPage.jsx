@@ -148,7 +148,7 @@ export default function ProjectDetailPage() {
                       </Button>
                     </a>
                   )}
-                  {user && (user._id === project.makerId || user.id === project.maker_id) && (
+                  {user && user.id === project.maker_id && (
                     <Button onClick={() => { setEditForm({ name: project.name, tagline: project.tagline, description: project.description, website_url: project.website_url, tags: (project.tags || []).join(", "), tech_stack: (project.tech_stack || []).join(", ") }); setEditing(true); }} variant="outline" className="rounded-sm gap-2" data-testid="edit-project-button">
                       <PencilSimple size={16} /> Edit
                     </Button>
@@ -187,11 +187,20 @@ export default function ProjectDetailPage() {
                 <section>
                   <h2 className="font-heading font-bold text-2xl mb-4">Tech stack</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {project.tech_stack.map((t) => (
-                      <div key={t} className="p-3 border border-border bg-secondary/40 text-sm font-medium" data-testid={`tech-${t}`}>
-                        {t}
-                      </div>
-                    ))}
+                    {project.tech_stack.map((t) => {
+                      const slug = t.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9]/g, "");
+                      return (
+                        <div key={t} className="p-3 border border-border bg-secondary/40 text-sm font-medium flex items-center gap-2" data-testid={`tech-${t}`}>
+                          <img
+                            src={`/_/backend/api/icon?slug=${slug}`}
+                            alt={t}
+                            className="w-5 h-5 flex-shrink-0"
+                            onError={(e) => { e.target.style.display = "none"; }}
+                          />
+                          <span className="truncate">{t}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
               )}

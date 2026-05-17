@@ -64,7 +64,7 @@ export default function ProjectCard({ project, rank, onUpdate }) {
       <Link
         to={`/p/${project.slug}`}
         state={{ project }}
-        className={`group relative block border rounded-2xl bg-card hover:shadow-lg transition-all duration-300 p-5 ${
+        className={`group relative block border rounded-2xl overflow-hidden bg-card hover:shadow-lg transition-all duration-300 p-5 ${
           isTop3 && crown ? `${crown.border} shadow-[${crown.glow}]` : "border-border hover:border-foreground/30"
         }`}
         style={isTop3 && crown ? { boxShadow: crown.glow } : undefined}
@@ -171,13 +171,14 @@ export default function ProjectCard({ project, rank, onUpdate }) {
                   onClick={bookmark}
                   disabled={bmBusy}
                   data-testid={`bookmark-button-${project.slug}`}
+                  title={hasBookmark ? "Remove bookmark" : "Bookmark this project"}
                   className={`flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl border transition-all active:scale-95 ${
                     hasBookmark
-                      ? "bg-primary border-primary text-white"
-                      : "bg-background border-border text-foreground hover:border-primary hover:text-primary"
+                      ? "bg-amber-500 border-amber-500 text-white shadow-sm"
+                      : "bg-background border-border text-muted-foreground hover:border-amber-500 hover:text-amber-500"
                   }`}
                 >
-                  <BookmarkSimple size={18} weight={hasBookmark ? "fill" : "bold"} />
+                  <BookmarkSimple size={22} weight={hasBookmark ? "fill" : "bold"} />
                   <span className="font-heading font-bold text-xs leading-none mt-0.5">{project.bookmarks_count || 0}</span>
                 </button>
               </div>
