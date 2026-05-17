@@ -377,6 +377,48 @@ async def delete_banner(bid: str, u: dict = Depends(get_current_user)):
     if u.get("role")!="admin": raise HTTPException(403,"Admin only")
     await cv_delete_banner(bid); return{"ok":True}
 
+_competition_deadline = None
+
+@api.get("/admin/competition-deadline")
+async def get_competition_deadline(u: dict = Depends(get_current_user)):
+    if u.get("role")!="admin": raise HTTPException(403,"Admin only")
+    return {"deadline": _competition_deadline}
+
+@api.post("/admin/competition-deadline")
+async def set_competition_deadline(deadline: str, u: dict = Depends(get_current_user)):
+    if u.get("role")!="admin": raise HTTPException(403,"Admin only")
+    global _competition_deadline
+    _competition_deadline = deadline
+    return {"ok": True, "deadline": deadline}
+
+@api.get("/admin/users")
+async def list_users(limit: int = 100, u: dict = Depends(get_current_user)):
+    if u.get("role")!="admin": raise HTTPException(403,"Admin only")
+    r = await cv_q("listUsers", limit=str(limit)) or []
+    return [serialize_user(x) for x in r]
+
+@api.patch("/admin/users/{uid}/role")
+async def set_user_role(uid: str, role: str, u: dict = Depends(get_current_user)):
+    if u.get("role")!="admin": raise HTTPException(403,"Admin only")
+    target = await cv_get_user_by_id(uid)
+    if not target: raise HTTPException(404,"User not found")
+    await cv_update_user(target["email"], {"role": role})
+    return {"ok": True}
+
+@api.delete("/admin/users/{uid}")
+async def delete_user(uid: str, u: dict = Depends(get_current_user)):
+    if u.get("role")!="admin": raise HTTPException(403,"Admin only")
+    target = await cv_get_user_by_id(uid)
+    if not target: raise HTTPException(404,"User not found")
+    await cv_m("deleteUser", {"id": target["email"]})
+    return {"ok": True}
+
+@api.get("/admin/projects")
+async def list_all_projects(limit: int = 100, u: dict = Depends(get_current_user)):
+    if u.get("role")!="admin": raise HTTPException(403,"Admin only")
+    ps = await cv_list_projects(sort="recent", limit=limit)
+    return await annotate(ps, u["_id"])
+
 @api.get("/community/channels")
 async def list_channels():
     r=await cv_q("listChannels") or []
