@@ -1,9 +1,9 @@
-import os, uuid, json, hashlib, logging, secrets, httpx, jwt, time, urllib.parse
+import os, uuid, json, hashlib, logging, httpx, jwt, time, urllib.parse
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Response, UploadFile, File
-from fastapi.responses import Response as FastResponse, RedirectResponse, Response
+from fastapi.responses import RedirectResponse
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -81,7 +81,7 @@ def set_cookies(r, at, rt):
     r.set_cookie("refresh_token", rt, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
 
 def serialize_user(u):
-    return {"id": u.get("id",""), "email": u["email"], "username": u.get("username"), "name": u.get("name",""), "bio": u.get("bio",""), "avatar_url": u.get("avatar_url") or u.get("avatarUrl"), "twitter": u.get("twitter"), "github": u.get("github"), "website": u.get("website"), "role": u.get("role","user"), "created_at": u.get("created_at") or u.get("createdAt")}
+    return {"id": u.get("id","") or u.get("_id",""), "email": u["email"], "username": u.get("username"), "name": u.get("name",""), "bio": u.get("bio",""), "avatar_url": u.get("avatar_url") or u.get("avatarUrl"), "twitter": u.get("twitter"), "github": u.get("github"), "website": u.get("website"), "role": u.get("role","user"), "created_at": u.get("created_at") or u.get("createdAt")}
 
 async def get_current_user(request: Request):
     token = request.cookies.get("access_token") or ""
@@ -242,16 +242,13 @@ async def update_me(p: ProfileUpd, u: dict = Depends(get_current_user)):
     return serialize_user(await cv_get_user_by_email(u["email"]))
 
 @api.get("/users/{username}")
-async def get_user(username: str):
+async def get_user(username: str, req: Request):
     u=await cv_get_user_by_username(username.lower())
     if not u: raise HTTPException(404,"User not found")
     ps=await cv_list_projects(sort="recent",limit=100)
     user_projects=[p for p in ps if p.get("makerId")==u["_id"]or p.get("maker_id")==u["_id"]]
-    for p in user_projects:
-        try: p["tags"]=json.loads(p.get("tags","[]"))
-        except: p["tags"]=[]
-        try: p["tech_stack"]=json.loads(p.get("techStack","[]"))
-        except: p["tech_stack"]=p.get("techStack",[])
+    cu=await get_optional_user(req)
+    user_projects = await annotate(user_projects, cu["_id"] if cu else None)
     return {"user":serialize_user(u),"projects":user_projects}
 
 @api.post("/projects")
@@ -344,7 +341,9 @@ async def get_comments(pid: str):
     if not p: raise HTTPException(404,"Project not found")
     cs = await cv_get_comments(str(p["_id"]))
     for c in cs:
-        if "_id" in c and isinstance(c, dict): del c["_id"]
+        if isinstance(c, dict):
+            c["id"] = c.get("_id","") or c.get("id","")
+            if "_id" in c: del c["_id"]
     return cs
 
 @api.post("/projects/{pid}/comments")
@@ -471,9 +470,10 @@ async def generate_video(url: str):
                 if r.status_code == 200:
                     ct = r.headers.get("content-type", "")
                     if "video" in ct:
-                        vid_path = f"/tmp/preview_{uuid.uuid4()}.mp4"
-                        Path(vid_path).write_bytes(r.content)
-                        return {"ok": True, "video_url": f"/api/files/local/{Path(vid_path).name}", "local_path": vid_path}
+                        safe_name = f"preview_{uuid.uuid4()}.mp4"
+                        vid_path = UPLOAD_DIR / safe_name
+                        vid_path.write_bytes(r.content)
+                        return {"ok": True, "video_url": f"/api/files/local/{safe_name}", "local_path": str(vid_path)}
                     data = r.json()
                     if data.get("success") and data.get("data", {}).get("frames_base64"):
                         return {"ok": True, "frames": data["data"]["frames_base64"], "note": "Video unavailable, frames returned"}
