@@ -51,7 +51,7 @@ export default function ProfilePage() {
     const fd = new FormData();
     fd.append("file", file);
     try {
-      const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const { data } = await api.post("/upload", fd);
       setForm((p) => ({ ...p, avatar_url: data.url }));
       toast.success("Avatar uploaded");
     } catch (err) {

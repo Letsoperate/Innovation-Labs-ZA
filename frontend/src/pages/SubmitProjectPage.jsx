@@ -58,7 +58,7 @@ export default function SubmitProjectPage() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const { data } = await api.post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const { data } = await api.post("/upload", fd);
       update("screenshots", [...(form.screenshots || []), data.url]);
       toast.success("Image uploaded");
     } catch (err) {
