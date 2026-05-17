@@ -25,7 +25,7 @@ export default function ProjectDetailPage() {
   const [hasUp, setHasUp] = useState(false);
   const [upCount, setUpCount] = useState(0);
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", tagline: "", description: "", website_url: "", tags: "", tech_stack: "" });
+  const [editForm, setEditForm] = useState({ name: "", tagline: "", description: "", website_url: "", tags: "", tech_stack: "", cover_image_url: "", video_url: "" });
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -149,7 +149,7 @@ export default function ProjectDetailPage() {
                     </a>
                   )}
                   {user && user.id === project.maker_id && (
-                    <Button onClick={() => { setEditForm({ name: project.name, tagline: project.tagline, description: project.description, website_url: project.website_url, tags: (project.tags || []).join(", "), tech_stack: (project.tech_stack || []).join(", ") }); setEditing(true); }} variant="outline" className="rounded-sm gap-2" data-testid="edit-project-button">
+                    <Button onClick={() => { setEditForm({ name: project.name, tagline: project.tagline, description: project.description, website_url: project.website_url, tags: (project.tags || []).join(", "), tech_stack: (project.tech_stack || []).join(", "), cover_image_url: project.cover_image_url || "", video_url: project.video_url || "" }); setEditing(true); }} variant="outline" className="rounded-sm gap-2" data-testid="edit-project-button">
                       <PencilSimple size={16} /> Edit
                     </Button>
                   )}
@@ -307,6 +307,18 @@ export default function ProjectDetailPage() {
                     <div><label className="text-xs font-medium">Website</label><input value={editForm.website_url} onChange={(e) => setEditForm({...editForm, website_url: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" /></div>
                     <div><label className="text-xs font-medium">Tags (comma-separated)</label><input value={editForm.tags} onChange={(e) => setEditForm({...editForm, tags: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" /></div>
                     <div><label className="text-xs font-medium">Tech stack (comma-separated)</label><input value={editForm.tech_stack} onChange={(e) => setEditForm({...editForm, tech_stack: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" /></div>
+                    <div>
+                      <label className="text-xs font-medium">Cover image</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input type="file" accept="image/*" onChange={async (e) => {
+                          const file = e.target.files?.[0]; if (!file) return;
+                          const fd = new FormData(); fd.append("file", file);
+                          try { const { data } = await api.post("/upload", fd); setEditForm(p => ({...p, cover_image_url: data.data_url || data.url})); } catch {}
+                        }} className="text-xs" />
+                        {editForm.cover_image_url && <img src={editForm.cover_image_url} alt="" className="h-10 w-10 object-cover rounded border border-border" />}
+                      </div>
+                    </div>
+                    <div><label className="text-xs font-medium">Video URL</label><input value={editForm.video_url} onChange={(e) => setEditForm({...editForm, video_url: e.target.value})} className="w-full h-10 px-3 border border-border rounded-xl text-sm bg-background mt-1" placeholder="https://urltovideo.com/v/abc123" /></div>
                   </div>
                   <div className="flex justify-end gap-2 mt-5">
                     <button onClick={() => setEditing(false)} className="px-4 py-2 border border-border rounded-xl text-sm hover:bg-secondary transition-colors">Cancel</button>
@@ -317,6 +329,8 @@ export default function ProjectDetailPage() {
                           name: editForm.name, tagline: editForm.tagline, description: editForm.description,
                           website_url: editForm.website_url, tags: editForm.tags.split(",").map(t=>t.trim()).filter(Boolean),
                           tech_stack: editForm.tech_stack.split(",").map(t=>t.trim()).filter(Boolean),
+                          cover_image_url: editForm.cover_image_url || null,
+                          video_url: editForm.video_url || null,
                         };
                         await api.patch(`/projects/${slug}`, payload);
                         toast.success("Project updated!");

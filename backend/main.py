@@ -156,7 +156,7 @@ class ProjCreate(BaseModel):
     tags: List[str]=[]; tech_stack: List[str]=[]; cover_image_url: Optional[str]=None; github_url: Optional[str]=None; screenshots: Optional[str]=None; video_url: Optional[str]=None
 class ProjUpdate(BaseModel):
     name: Optional[str]=None; tagline: Optional[str]=None; description: Optional[str]=None; website_url: Optional[str]=None; category: Optional[str]=None
-    tags: Optional[List[str]]=None; tech_stack: Optional[List[str]]=None; cover_image_url: Optional[str]=None; github_url: Optional[str]=None
+    tags: Optional[List[str]]=None; tech_stack: Optional[List[str]]=None; cover_image_url: Optional[str]=None; github_url: Optional[str]=None; screenshots: Optional[str]=None; video_url: Optional[str]=None
 class CmtCreate(BaseModel):
     body: str; parent_id: Optional[str]=None
 
@@ -300,6 +300,8 @@ async def update_project(pid: str, p: ProjUpdate, u: dict = Depends(get_current_
         if v is not None: upd[b]=v
     if p.tags is not None: upd["tags"]=json.dumps(p.tags)
     if p.tech_stack is not None: upd["techStack"]=json.dumps(p.tech_stack)
+    if p.screenshots is not None: upd["screenshots"]=p.screenshots
+    if p.video_url is not None: upd["videoUrl"]=p.video_url
     if upd: await cv_update_project(pid,upd)
     fr=await cv_get_project(pid)
     if fr:
