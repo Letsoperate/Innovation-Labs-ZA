@@ -4,6 +4,7 @@ import Hero from "../components/Hero";
 import Leaderboard from "../components/Leaderboard";
 import ToolsMarquee from "../components/ToolsMarquee";
 import HomeBanners from "../components/HomeBanners";
+import CountdownBanner from "../components/CountdownBanner";
 import ProjectCard from "../components/ProjectCard";
 import { FadeIn, Stagger, StaggerItem } from "../components/Motion";
 import { ArrowRight, Compass, Code, PaintBrush, Lightning, CurrencyDollar, Users, Cloud, DeviceMobile, GitBranch, Robot, Megaphone } from "@phosphor-icons/react";
@@ -30,6 +31,8 @@ export default function HomePage() {
   return (
     <>
       <Hero stats={stats} />
+
+      <CountdownBanner />
 
       {/* Stats bar */}
       <div className="border-t border-border bg-secondary/30">

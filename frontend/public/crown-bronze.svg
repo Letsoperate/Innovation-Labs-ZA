@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" width="200" height="180">
+  <defs>
+    <!-- Bronze base gradient -->
+    <linearGradient id="bronzeBase" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFCC80"/>
+      <stop offset="20%" stop-color="#CD7F32"/>
+      <stop offset="50%" stop-color="#7C4A00"/>
+      <stop offset="75%" stop-color="#A0522D"/>
+      <stop offset="100%" stop-color="#4E2800"/>
+    </linearGradient>
+
+    <!-- Bronze shine overlay -->
+    <linearGradient id="bronzeShine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE0B2" stop-opacity="0.65"/>
+      <stop offset="40%" stop-color="#CD7F32" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#8D4E08" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <!-- Band gradient -->
+    <linearGradient id="bronzeBand" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFCC80"/>
+      <stop offset="30%" stop-color="#CD7F32"/>
+      <stop offset="60%" stop-color="#7C4A00"/>
+      <stop offset="100%" stop-color="#3E1500"/>
+    </linearGradient>
+
+    <!-- Topaz gem -->
+    <radialGradient id="topazGem" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FFEB80"/>
+      <stop offset="40%" stop-color="#F57F17"/>
+      <stop offset="100%" stop-color="#6D3000"/>
+    </radialGradient>
+
+    <!-- Garnet gem -->
+    <radialGradient id="garnetGem" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FF8A65"/>
+      <stop offset="40%" stop-color="#B71C1C"/>
+      <stop offset="100%" stop-color="#4A0000"/>
+    </radialGradient>
+
+    <!-- Tiger eye gem -->
+    <radialGradient id="tigerGem" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FFD180"/>
+      <stop offset="40%" stop-color="#E65100"/>
+      <stop offset="100%" stop-color="#521A00"/>
+    </radialGradient>
+
+    <!-- Drop shadow -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#4E2800" flood-opacity="0.55"/>
+    </filter>
+
+    <!-- Gem glow -->
+    <filter id="gemGlow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <linearGradient id="bronzeEdge" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4E2800"/>
+      <stop offset="30%" stop-color="#CD7F32"/>
+      <stop offset="60%" stop-color="#FFCC80"/>
+      <stop offset="100%" stop-color="#7C4A00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer glow aura -->
+  <ellipse cx="100" cy="155" rx="70" ry="10" fill="#CD7F32" opacity="0.18"/>
+
+  <!-- === CROWN BODY === -->
+  <g filter="url(#dropShadow)">
+
+    <!-- Crown base band -->
+    <rect x="20" y="120" width="160" height="30" rx="6" ry="6" fill="url(#bronzeBand)"/>
+    <!-- Band top highlight -->
+    <rect x="20" y="120" width="160" height="4" rx="3" fill="#FFE0B2" opacity="0.5"/>
+    <!-- Band bottom shadow -->
+    <rect x="20" y="146" width="160" height="4" rx="3" fill="#1A0000" opacity="0.35"/>
+
+    <!-- Band engraving lines -->
+    <line x1="35" y1="124" x2="35" y2="146" stroke="#7C4A00" stroke-width="1" opacity="0.6"/>
+    <line x1="165" y1="124" x2="165" y2="146" stroke="#7C4A00" stroke-width="1" opacity="0.6"/>
+    <line x1="100" y1="124" x2="100" y2="146" stroke="#CD7F32" stroke-width="0.8" opacity="0.5"/>
+
+    <!-- Main crown body -->
+    <polygon points="20,120 20,60 55,90 80,30 100,70 120,30 145,90 180,60 180,120"
+             fill="url(#bronzeBase)"/>
+    <polygon points="20,120 20,60 55,90 80,30 100,70 120,30 145,90 180,60 180,120"
+             fill="url(#bronzeShine)"/>
+    <polyline points="20,120 20,60 55,90 80,30 100,70 120,30 145,90 180,60 180,120"
+              fill="none" stroke="url(#bronzeEdge)" stroke-width="2.5" stroke-linejoin="round"/>
+
+    <!-- Depth lines -->
+    <line x1="20" y1="60" x2="55" y2="90" stroke="#3E1500" stroke-width="1.5" opacity="0.4"/>
+    <line x1="55" y1="90" x2="80" y2="30" stroke="#3E1500" stroke-width="1.5" opacity="0.4"/>
+    <line x1="180" y1="60" x2="145" y2="90" stroke="#3E1500" stroke-width="1.5" opacity="0.4"/>
+    <line x1="145" y1="90" x2="120" y2="30" stroke="#3E1500" stroke-width="1.5" opacity="0.4"/>
+  </g>
+
+  <!-- === GEMS ON BAND === -->
+  <!-- Center gem: Topaz -->
+  <g filter="url(#gemGlow)">
+    <polygon points="100,125 110,130 110,140 100,145 90,140 90,130"
+             fill="url(#topazGem)" stroke="#FFD54F" stroke-width="0.8"/>
+    <polygon points="100,125 110,130 105,130" fill="white" opacity="0.4"/>
+    <polygon points="100,125 90,130 95,130" fill="white" opacity="0.2"/>
+  </g>
+
+  <!-- Left gem: Garnet -->
+  <g filter="url(#gemGlow)">
+    <polygon points="50,128 58,132 58,141 50,145 42,141 42,132"
+             fill="url(#garnetGem)" stroke="#FF8A65" stroke-width="0.7"/>
+    <polygon points="50,128 58,132 54,132" fill="white" opacity="0.35"/>
+  </g>
+
+  <!-- Right gem: Tiger Eye -->
+  <g filter="url(#gemGlow)">
+    <polygon points="150,128 158,132 158,141 150,145 142,141 142,132"
+             fill="url(#tigerGem)" stroke="#FFCC80" stroke-width="0.7"/>
+    <polygon points="150,128 158,132 154,132" fill="white" opacity="0.35"/>
+  </g>
+
+  <!-- === TIP ORBS === -->
+  <!-- Center top: Topaz -->
+  <g filter="url(#gemGlow)">
+    <circle cx="100" cy="24" r="9" fill="url(#topazGem)" stroke="#FFD54F" stroke-width="1"/>
+    <ellipse cx="96" cy="20" rx="3" ry="2" fill="white" opacity="0.5"/>
+  </g>
+
+  <!-- Left outer: Garnet -->
+  <g filter="url(#gemGlow)">
+    <circle cx="20" cy="58" r="7" fill="url(#garnetGem)" stroke="#FF8A65" stroke-width="1"/>
+    <ellipse cx="17" cy="55" rx="2.5" ry="1.5" fill="white" opacity="0.4"/>
+  </g>
+
+  <!-- Right outer: Garnet -->
+  <g filter="url(#gemGlow)">
+    <circle cx="180" cy="58" r="7" fill="url(#garnetGem)" stroke="#FF8A65" stroke-width="1"/>
+    <ellipse cx="177" cy="55" rx="2.5" ry="1.5" fill="white" opacity="0.4"/>
+  </g>
+
+  <!-- Left inner: Tiger Eye -->
+  <g filter="url(#gemGlow)">
+    <circle cx="80" cy="24" r="7" fill="url(#tigerGem)" stroke="#FFCC80" stroke-width="1"/>
+    <ellipse cx="77" cy="21" rx="2.5" ry="1.5" fill="white" opacity="0.4"/>
+  </g>
+
+  <!-- Right inner: Tiger Eye -->
+  <g filter="url(#gemGlow)">
+    <circle cx="120" cy="24" r="7" fill="url(#tigerGem)" stroke="#FFCC80" stroke-width="1"/>
+    <ellipse cx="117" cy="21" rx="2.5" ry="1.5" fill="white" opacity="0.4"/>
+  </g>
+
+  <!-- Band dots -->
+  <circle cx="70" cy="135" r="3" fill="#FFE0B2" opacity="0.6"/>
+  <circle cx="130" cy="135" r="3" fill="#FFE0B2" opacity="0.6"/>
+  <circle cx="25" cy="135" r="2.5" fill="#FFE0B2" opacity="0.45"/>
+  <circle cx="175" cy="135" r="2.5" fill="#FFE0B2" opacity="0.45"/>
+
+  <!-- Label -->
+  <text x="100" y="170" text-anchor="middle"
+        font-family="Georgia, serif" font-size="13" font-weight="bold"
+        fill="#7C4A00" letter-spacing="3">BRONZE</text>
+</svg>
