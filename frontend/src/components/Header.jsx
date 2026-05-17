@@ -7,6 +7,7 @@ import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket, CaretD
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { fileUrl } from "../lib/api";
 import api from "../lib/api";
+import CrownedAvatar from "./CrownedAvatar";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -39,8 +40,6 @@ export default function Header() {
 
   const initials = (user?.name || user?.username || "U").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
-  const crownRankSvg = crownRank === 1 ? "/crown-gold.svg" : crownRank === 2 ? "/crown-silver.svg" : crownRank === 3 ? "/crown-bronze.svg" : null;
-
   return (
     <header
       data-testid="site-header"
@@ -71,19 +70,13 @@ export default function Header() {
 
           {user ? (
             <div className="relative group">
-              <button data-testid="user-menu-trigger" className="rounded-full transition-transform duration-200 group-hover:scale-105 relative">
-                {crownRankSvg && (
-                  <div className="absolute -top-3 -right-2 z-10">
-                    <img src={crownRankSvg} alt="" className="w-8 h-8 drop-shadow-lg" />
-                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] font-black px-1 rounded-full bg-background border border-border" style={{ color: crownRank === 1 ? "#B8860B" : crownRank === 2 ? "#6B7280" : "#8B4513" }}>#{crownRank}</span>
-                  </div>
-                )}
-                <Avatar className="h-9 w-9 ring-1 ring-border rounded-full ring-offset-2 ring-offset-background">
-                  <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} className="rounded-full" />
-                  <AvatarFallback className="bg-foreground text-background font-semibold rounded-full">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+              <button data-testid="user-menu-trigger" className="rounded-full transition-transform duration-200 group-hover:scale-105">
+                <CrownedAvatar
+                  rank={crownRank}
+                  avatarUrl={fileUrl(user.avatar_url)}
+                  name={user.name}
+                  initials={initials}
+                />
               </button>
               <div className="absolute right-0 top-full mt-3 w-56 bg-card border border-border rounded-2xl shadow-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50 origin-top-right">
                 <div className="flex items-center gap-2 px-3 py-2">
