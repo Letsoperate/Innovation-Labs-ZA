@@ -13,11 +13,12 @@ export default function AdminPage() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ projects: 0, makers: 0, upvotes: 0, comments: 0 });
   const [banners, setBanners] = useState([]);
-  const [newBanner, setNewBanner] = useState({ image_url: "", caption: "", link_url: "", position: "top" });
-  const [submitting, setSubmitting] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (checked && (!user || user.role !== "admin")) { navigate("/"); return; }
+    if (!checked) return;
+    if (!user || user.role !== "admin") { navigate("/", { replace: true }); return; }
+    setReady(true);
     api.get("/stats").then((r) => setStats(r.data));
     api.get("/banners").then((r) => setBanners(r.data));
   }, [user, checked, navigate]);
@@ -43,7 +44,10 @@ export default function AdminPage() {
     } catch { toast.error("Failed to delete banner"); }
   };
 
-  if (checked && (!user || user.role !== "admin")) return null;
+  if (!checked) {
+    return <div className="pt-28 pb-20 text-center text-muted-foreground">Loading...</div>;
+  }
+  if (!user || user.role !== "admin") return null;
 
   return (
     <div className="pt-28 pb-20">

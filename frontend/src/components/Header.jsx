@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import BrowseDropdown from "./BrowseDropdown";
 import { Button } from "./ui/button";
-import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket, CaretDown, Crown } from "@phosphor-icons/react";
+import { MagnifyingGlass, SignOut, User, List, X, BookmarkSimple, Rocket, CaretDown } from "@phosphor-icons/react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { fileUrl } from "../lib/api";
 import api from "../lib/api";
@@ -39,8 +39,7 @@ export default function Header() {
 
   const initials = (user?.name || user?.username || "U").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
-  const crownColor = crownRank === 1 ? "#FFD700" : crownRank === 2 ? "#C0C0C0" : "#CD7F32";
-  const crownGlow = crownRank === 1 ? "0 0 10px rgba(255,215,0,0.6)" : crownRank === 2 ? "0 0 8px rgba(192,192,192,0.5)" : "0 0 6px rgba(205,127,50,0.4)";
+  const crownRankSvg = crownRank === 1 ? "/crown-gold.svg" : crownRank === 2 ? "/crown-silver.svg" : crownRank === 3 ? "/crown-bronze.svg" : null;
 
   return (
     <header
@@ -73,8 +72,11 @@ export default function Header() {
           {user ? (
             <div className="relative group">
               <button data-testid="user-menu-trigger" className="rounded-full transition-transform duration-200 group-hover:scale-105 relative">
-                {crownRank > 0 && (
-                  <Crown size={16} weight="fill" className="absolute -top-1.5 -right-1.5 z-10 drop-shadow" style={{ color: crownColor, filter: `drop-shadow(${crownGlow})` }} />
+                {crownRankSvg && (
+                  <div className="absolute -top-3 -right-2 z-10">
+                    <img src={crownRankSvg} alt="" className="w-8 h-8 drop-shadow-lg" />
+                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] font-black px-1 rounded-full bg-background border border-border" style={{ color: crownRank === 1 ? "#B8860B" : crownRank === 2 ? "#6B7280" : "#8B4513" }}>#{crownRank}</span>
+                  </div>
                 )}
                 <Avatar className="h-9 w-9 ring-1 ring-border rounded-full ring-offset-2 ring-offset-background">
                   <AvatarImage src={fileUrl(user.avatar_url)} alt={user.name} className="rounded-full" />

@@ -3,17 +3,21 @@ import { Link } from "react-router-dom";
 import api from "../lib/api";
 import { Trophy, Timer } from "@phosphor-icons/react";
 
-const COMPETITION_END = new Date("2026-05-31T23:59:59+02:00");
+const COMPETITION_DURATION_MINUTES = 3;
 
 export default function CountdownBanner() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [ended, setEnded] = useState(false);
   const [winners, setWinners] = useState([]);
+  const [endTime, setEndTime] = useState(null);
 
   useEffect(() => {
+    const end = new Date(Date.now() + COMPETITION_DURATION_MINUTES * 60 * 1000);
+    setEndTime(end);
+
     const tick = () => {
       const now = new Date();
-      const diff = COMPETITION_END.getTime() - now.getTime();
+      const diff = end.getTime() - now.getTime();
       if (diff <= 0) {
         setEnded(true);
         api.get("/projects/leaderboard", { params: { period: "all", limit: 3 } }).then((r) => setWinners(r.data)).catch(() => {});
@@ -31,6 +35,7 @@ export default function CountdownBanner() {
     return () => clearInterval(interval);
   }, []);
 
+  if (!endTime) return null;
   if (ended && winners.length === 0) return null;
 
   return (

@@ -132,7 +132,7 @@ function MarqueeRow({ tools, reverse }) {
           >
             <div className="w-6 h-6 flex items-center justify-center">
               <img
-                src={`https://cdn.simpleicons.org/${tool.slug}/${tool.color}`}
+                src={`${process.env.REACT_APP_BACKEND_URL || "/_/backend"}/api/icon?slug=${tool.slug}&color=${tool.color}`}
                 alt={tool.name}
                 className="w-6 h-6"
                 loading="eager"
