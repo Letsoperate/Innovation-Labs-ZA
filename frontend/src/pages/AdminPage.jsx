@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import api from "../lib/api";
 import { FadeIn } from "../components/Motion";
 import { Button } from "../components/ui/button";
@@ -10,18 +10,21 @@ import { Shield, Trash, Plus, X } from "@phosphor-icons/react";
 
 export default function AdminPage() {
   const { user, checked } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState({ projects: 0, makers: 0, upvotes: 0, comments: 0 });
   const [banners, setBanners] = useState([]);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!checked) return;
-    if (!user || user.role !== "admin") { navigate("/", { replace: true }); return; }
-    setReady(true);
+    if (!checked || !user || user.role !== "admin") return;
     api.get("/stats").then((r) => setStats(r.data));
     api.get("/banners").then((r) => setBanners(r.data));
-  }, [user, checked, navigate]);
+  }, [user, checked]);
+
+  if (!checked) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">Loading...</div>;
+  }
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
 
   const createBanner = async (e) => {
     e.preventDefault();
