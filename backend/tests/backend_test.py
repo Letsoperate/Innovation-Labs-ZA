@@ -150,11 +150,21 @@ class TestProjects:
         for p in r.json():
             assert p["category"] == "productivity"
 
-    def test_search_query(self):
-        r = requests.get(f"{API}/projects?q=Synthwave", timeout=20)
+    def test_search_query(self, new_user):
+        s = new_user["session"]
+        uniq = uuid.uuid4().hex[:6]
+        name = f"SEARCH_TEST_{uniq}"
+        r = s.post(f"{API}/projects", json={
+            "name": name, "tagline": "search test", "description": "d",
+            "website_url": "https://e.com", "category": "ai",
+        }, timeout=15)
+        assert r.status_code == 200, r.text
+        pid = r.json()["id"]
+        r = requests.get(f"{API}/projects?q={uniq}", timeout=20)
         assert r.status_code == 200
         names = [p["name"] for p in r.json()]
-        assert any("Synthwave" in n for n in names)
+        assert any(name in n for n in names)
+        s.delete(f"{API}/projects/{pid}", timeout=15)
 
     def test_leaderboard_periods(self):
         for period in ["weekly", "monthly", "all"]:
@@ -194,11 +204,11 @@ class TestProjects:
 
         # Unauthorized update from a different session
         other = requests.Session()
-        r = other.patch(f"{API}/projects/{pid}", json={"name": "Hacked"}, timeout=15)
+        r = other.patch(f"{API}/projects/{slug}", json={"name": "Hacked"}, timeout=15)
         assert r.status_code == 401
 
         # Owner update
-        r = s.patch(f"{API}/projects/{pid}", json={"tagline": "Updated tagline"}, timeout=15)
+        r = s.patch(f"{API}/projects/{slug}", json={"tagline": "Updated tagline"}, timeout=15)
         assert r.status_code == 200
         assert r.json()["tagline"] == "Updated tagline"
 
@@ -207,7 +217,7 @@ class TestProjects:
         assert r.json()["tagline"] == "Updated tagline"
 
         # Delete by owner
-        r = s.delete(f"{API}/projects/{pid}", timeout=15)
+        r = s.delete(f"{API}/projects/{slug}", timeout=15)
         assert r.status_code == 200
 
         # Verify gone
@@ -237,14 +247,15 @@ class TestUpvotes:
         slug = r.json()["slug"]
 
         # Upvote
-        r = s.post(f"{API}/projects/{pid}/upvote", timeout=15)
+        r = s.post(f"{API}/projects/{slug}/upvote", timeout=15)
         assert r.status_code == 200
         d = r.json()
         assert d["upvoted"] is True
         assert d["upvotes_count"] == 1
 
         # Toggle off
-        r = s.post(f"{API}/projects/{pid}/upvote", timeout=15)
+        import time; time.sleep(4)
+        r = s.post(f"{API}/projects/{slug}/upvote", timeout=15)
         assert r.status_code == 200
         d = r.json()
         assert d["upvoted"] is False
@@ -255,7 +266,7 @@ class TestUpvotes:
         assert r.json()["has_upvoted"] is False
 
         # cleanup
-        s.delete(f"{API}/projects/{pid}", timeout=15)
+        s.delete(f"{API}/projects/{slug}", timeout=15)
 
     def test_upvote_requires_auth(self):
         r = requests.post(f"{API}/projects/nonexistent/upvote", timeout=15)
@@ -271,21 +282,21 @@ class TestComments:
             "tagline": "t", "description": "d",
             "website_url": "https://e.com", "category": "ai",
         }, timeout=15)
-        pid = r.json()["id"]
-        r = s.post(f"{API}/projects/{pid}/comments", json={"body": "Great work!"}, timeout=15)
+        slug = r.json()["slug"]
+        r = s.post(f"{API}/projects/{slug}/comments", json={"body": "Great work!"}, timeout=15)
         assert r.status_code == 200
         c = r.json()
         assert c["body"] == "Great work!"
         assert c["author"]["id"] == new_user["user"]["id"]
 
-        r = requests.get(f"{API}/projects/{pid}/comments", timeout=15)
+        r = requests.get(f"{API}/projects/{slug}/comments", timeout=15)
         assert r.status_code == 200
         cs = r.json()
         assert any(c2["body"] == "Great work!" for c2 in cs)
         assert all("_id" not in c2 for c2 in cs)
 
         # cleanup
-        s.delete(f"{API}/projects/{pid}", timeout=15)
+        s.delete(f"{API}/projects/{slug}", timeout=15)
 
 
 # ---------- Profiles ----------

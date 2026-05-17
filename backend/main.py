@@ -1,4 +1,5 @@
 import os, uuid, json, hashlib, logging, secrets, httpx, jwt, time, urllib.parse
+from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Response, UploadFile, File
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Innovation Lab ZA API")
 api = APIRouter(prefix="/api")
 JWT_ALGORITHM = "HS256"
+UPLOAD_DIR = Path(__file__).parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 CV_SITE = os.environ.get("CONVEX_SITE_URL", "https://small-dogfish-122.convex.site")
 
 async def cv_q(type_: str, **params):
@@ -118,7 +121,9 @@ def apply_crowns(ps):
 async def annotate(ps, uid):
     out=[]
     for p in ps:
-        p["id"]=p.get("_id","") or p.get("id","")
+        pid = p.get("_id","") or p.get("id","")
+        p["id"]=pid
+        if "_id" in p: del p["_id"]
         p["score"]=project_score(p); p["badges"]=compute_badges(p); p["has_upvoted"]=False; p["has_bookmarked"]=False
         maker = await cv_get_user_by_id(p.get("makerId","")) if p.get("makerId") else None
         p["maker"] = serialize_user(maker) if maker else None
@@ -131,8 +136,8 @@ async def annotate(ps, uid):
         try: p["screenshots"]=json.loads(p.get("screenshots","[]"))
         except: p["screenshots"]=[]
         if uid:
-            u=await cv_get_upvote(str(p["_id"]),uid); p["has_upvoted"]=u is not None
-            b=await cv_get_bookmark(str(p["_id"]),uid); p["has_bookmarked"]=b is not None
+            u=await cv_get_upvote(str(pid),uid); p["has_upvoted"]=u is not None
+            b=await cv_get_bookmark(str(pid),uid); p["has_bookmarked"]=b is not None
         out.append(p)
     return out
 
@@ -251,7 +256,9 @@ async def create_project(p: ProjCreate, u: dict = Depends(get_current_user)):
         pid=str(uuid.uuid4()); slug="-".join(p.name.lower().split())[:60]+"-"+pid[:6]
         n=datetime.now(timezone.utc).isoformat()
         await cv_create_project(id=pid,slug=slug,name=p.name,tagline=p.tagline,description=p.description,websiteUrl=p.website_url,githubUrl=p.github_url or "",category=p.category,tags=json.dumps(p.tags),techStack=json.dumps(p.tech_stack),coverImageUrl=p.cover_image_url or "",makerId=u["_id"],createdAt=n,screenshots=p.screenshots or "[]",videoUrl=p.video_url or "")
-        return await cv_get_project(slug)
+        proj = await cv_get_project(slug)
+        an = await annotate([proj], u["_id"])
+        return an[0]
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 
@@ -294,8 +301,10 @@ async def update_project(pid: str, p: ProjUpdate, u: dict = Depends(get_current_
     if p.tech_stack is not None: upd["techStack"]=json.dumps(p.tech_stack)
     if upd: await cv_update_project(pid,upd)
     fr=await cv_get_project(pid)
-    if fr: fr["tags"]=json.loads(fr.get("tags","[]")); fr["techStack"]=json.loads(fr.get("techStack","[]"))
-    return fr
+    if fr:
+        an = await annotate([fr], u["_id"])
+        return an[0]
+    return None
 
 @api.delete("/projects/{pid}")
 async def delete_project(pid: str, u: dict = Depends(get_current_user)):
@@ -316,7 +325,8 @@ async def toggle_upvote(pid: str, u: dict = Depends(get_current_user)):
     p=await cv_get_project(pid)
     if not p: raise HTTPException(404,"Project not found")
     r=await cv_toggle_upvote(str(p["_id"]),uid)
-    return{"upvoted":r.get("upvoted",True),"upvotes_count":p.get("upvotesCount",0)or 0}
+    p2=await cv_get_project(pid)
+    return{"upvoted":r.get("upvoted",True),"upvotes_count":p2.get("upvotesCount",0)or 0}
 
 @api.post("/projects/{pid}/bookmark")
 async def toggle_bookmark(pid: str, u: dict = Depends(get_current_user)):
@@ -328,13 +338,18 @@ async def toggle_bookmark(pid: str, u: dict = Depends(get_current_user)):
 async def get_comments(pid: str):
     p=await cv_get_project(pid)
     if not p: raise HTTPException(404,"Project not found")
-    return await cv_get_comments(str(p["_id"]))
+    cs = await cv_get_comments(str(p["_id"]))
+    for c in cs:
+        if "_id" in c and isinstance(c, dict): del c["_id"]
+    return cs
 
 @api.post("/projects/{pid}/comments")
 async def post_comment(pid: str, p: CmtCreate, u: dict = Depends(get_current_user)):
     pr=await cv_get_project(pid)
     if not pr: raise HTTPException(404,"Project not found")
-    return await cv_post_comment(str(pr["_id"]),u["_id"],p.body,p.parent_id)
+    result = await cv_post_comment(str(pr["_id"]),u["_id"],p.body,p.parent_id)
+    comment_id = result.get("id") or result.get("_id") or ""
+    return {"body": p.body, "author": serialize_user(u), "id": comment_id, "project_id": str(pr["_id"])}
 
 @api.get("/banners")
 async def get_banners(): return await cv_get_banners()
@@ -375,7 +390,7 @@ async def get_post_comments(pid: str):
     return await cv_q("listPostComments", postId=pid) or []
 
 @api.post("/community/posts/{pid}/comments")
-async def post_comment(pid: str, body: str, parent_id: str = "", u: dict = Depends(get_current_user)):
+async def post_community_comment(pid: str, body: str, parent_id: str = "", u: dict = Depends(get_current_user)):
     args={"postId":pid,"userId":u["_id"],"body":body,"createdAt":datetime.now(timezone.utc).isoformat()}
     if parent_id: args["parentId"]=parent_id
     return await cv_m("createPostComment",args)
@@ -461,6 +476,25 @@ async def generate_video(url: str):
         except Exception as e:
             logger.warning(f"Video gen failed: {e}")
     return {"ok": False, "message": "Video generation requires a headless browser. Please use urltovideo.com and paste the video URL back.", "generate_url": f"https://urltovideo.com?url={urllib.parse.quote(url)}"}
+
+@api.post("/upload")
+async def upload_file(file: UploadFile = File(...), u: dict = Depends(get_current_user)):
+    ext = Path(file.filename).suffix.lstrip(".") if file.filename else "bin"
+    safe_name = f"{uuid.uuid4().hex}.{ext}"
+    file_path = UPLOAD_DIR / safe_name
+    content = await file.read()
+    file_path.write_bytes(content)
+    return {"url": f"/api/files/local/{safe_name}", "filename": safe_name}
+
+@api.get("/files/local/{name}")
+async def get_file(name: str):
+    file_path = UPLOAD_DIR / name
+    if not file_path.exists():
+        raise HTTPException(404, "File not found")
+    import mimetypes
+    mt, _ = mimetypes.guess_type(name)
+    content = file_path.read_bytes()
+    return Response(content=content, media_type=mt or "application/octet-stream")
 
 @api.get("/stats")
 async def stats():
