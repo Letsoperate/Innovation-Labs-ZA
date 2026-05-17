@@ -132,15 +132,14 @@ function MarqueeRow({ tools, reverse }) {
           >
             <div className="w-6 h-6 flex items-center justify-center">
               <img
-                src={`${process.env.REACT_APP_BACKEND_URL || "/_/backend"}/api/icon?slug=${tool.slug}&color=${tool.color}`}
+                src={(function() { const d = new URL(tool.url).hostname.replace("www.",""); return `https://www.google.com/s2/favicons?domain=${d}&sz=64`; })()}
                 alt={tool.name}
-                className="w-6 h-6"
+                className="w-5 h-5"
                 loading="eager"
                 onError={(e) => {
-                  const domain = new URL(tool.url).hostname.replace("www.", "");
-                  const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-                  if (e.target.src !== faviconUrl) {
-                    e.target.src = faviconUrl;
+                  const slugUrl = `${process.env.REACT_APP_BACKEND_URL || "/_/backend"}/api/icon?slug=${tool.slug}&color=${tool.color}`;
+                  if (e.target.src !== slugUrl) {
+                    e.target.src = slugUrl;
                   } else {
                     e.target.style.display = "none";
                     e.target.parentElement.querySelector(".fallback").style.display = "inline";

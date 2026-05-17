@@ -47,9 +47,9 @@ export default function Header() {
         scrolled ? "glass border-b border-border/60" : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group" data-testid="logo-link">
-          <img src="/logo.svg" alt="Innovation Lab ZA" className="h-8" />
+          <img src="/logo.svg" alt="Innovation Lab ZA" className="h-7" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

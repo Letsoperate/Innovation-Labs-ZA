@@ -1,11 +1,12 @@
 export default function CrownedAvatar({ rank, avatarUrl, name, initials }) {
+  const size = 32;
   if (!rank || rank < 1 || rank > 3) {
     return (
       <span className="relative inline-flex">
         {avatarUrl ? (
-          <img src={avatarUrl} alt={name} className="h-9 w-9 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background object-cover" />
+          <img src={avatarUrl} alt={name} className="h-8 w-8 rounded-full ring-1 ring-border ring-offset-1 ring-offset-background object-cover" />
         ) : (
-          <span className="h-9 w-9 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background bg-foreground text-background font-semibold flex items-center justify-center text-xs">{initials}</span>
+          <span className="h-8 w-8 rounded-full ring-1 ring-border ring-offset-1 ring-offset-background bg-foreground text-background font-semibold flex items-center justify-center text-[10px]">{initials}</span>
         )}
       </span>
     );
@@ -19,7 +20,7 @@ export default function CrownedAvatar({ rank, avatarUrl, name, initials }) {
   const c = colors[rank];
 
   return (
-    <span style={{ position: "relative", display: "inline-flex", width: "36px", height: "36px" }}>
+    <span style={{ position: "relative", display: "inline-flex", width: "32px", height: "32px" }}>
       <style>{`
         @keyframes pulse-ring-${rank} {
           0%, 100% { opacity: 0.3; transform: scale(1); }
