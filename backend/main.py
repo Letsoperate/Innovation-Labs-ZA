@@ -13,8 +13,12 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Innovation Lab ZA API")
 api = APIRouter(prefix="/api")
 JWT_ALGORITHM = "HS256"
-UPLOAD_DIR = Path(__file__).parent / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "/tmp/uploads"))
+try:
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    UPLOAD_DIR = Path("/tmp/uploads")
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 CV_SITE = os.environ.get("CONVEX_SITE_URL", "https://small-dogfish-122.convex.site")
 
 async def cv_q(type_: str, **params):
