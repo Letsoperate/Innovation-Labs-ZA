@@ -47,13 +47,13 @@ export default function Header() {
         scrolled ? "glass border-b border-border/60" : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group" data-testid="logo-link">
-          <img src="/logo.svg" alt="Innovation Lab ZA" className="h-6" />
+          <img src="/logo.svg" alt="Innovation Lab ZA" className="h-8" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          <NavLink to="/" end className={({ isActive }) => `px-3 py-1.5 text-xs font-medium transition-colors ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}>Home</NavLink>
+          <NavLink to="/" end className={({ isActive }) => `px-4 py-2 text-sm font-medium transition-colors ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}>Home</NavLink>
           <BrowseDropdown />
         </nav>
 
@@ -65,7 +65,7 @@ export default function Header() {
             data-testid="search-button"
             className="hidden sm:inline-flex rounded-full"
           >
-            <MagnifyingGlass size={16} weight="bold" />
+            <MagnifyingGlass size={20} weight="bold" />
           </Button>
 
           {user ? (

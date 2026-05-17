@@ -4,7 +4,6 @@ import api from "../lib/api";
 import { Trophy, Timer, X } from "@phosphor-icons/react";
 
 const COMPETITION_DURATION_MINUTES = 3;
-
 const crownSvgs = ["/crown-gold.svg", "/crown-silver.svg", "/crown-bronze.svg"];
 
 export default function CountdownBanner() {
@@ -17,7 +16,6 @@ export default function CountdownBanner() {
   useEffect(() => {
     const end = new Date(Date.now() + COMPETITION_DURATION_MINUTES * 60 * 1000);
     setEndTime(end);
-
     const tick = () => {
       const now = new Date();
       const diff = end.getTime() - now.getTime();
@@ -44,69 +42,61 @@ export default function CountdownBanner() {
 
   if (ended) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: "radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f1a 60%, #000 100%)" }}>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-sm">
         <style>{`
           @keyframes winner-float {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-          }
-          @keyframes confetti-fall {
-            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            50% { transform: translateY(-6px); }
           }
         `}</style>
 
-        {Array.from({ length: 30 }).map((_, i) => (
-          <span key={i} style={{
-            position: "absolute", top: "-10px",
-            left: `${Math.random() * 100}%`,
-            width: `${4 + Math.random() * 8}px`,
-            height: `${4 + Math.random() * 12}px`,
-            background: ["#FFD700","#C0C0C0","#CD7F32","#FF6B6B","#4ECDC4","#45B7D1"][Math.floor(Math.random() * 6)],
-            borderRadius: Math.random() > 0.5 ? "50%" : "2px",
-            animation: `confetti-fall ${2 + Math.random() * 4}s linear ${Math.random() * 2}s infinite`,
-          }} />
-        ))}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-400" />
 
-        <button onClick={() => setDismissed(true)} className="absolute top-6 right-6 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-colors">
-          <X size={20} />
+        <button onClick={() => setDismissed(true)} className="absolute top-6 right-6 z-10 w-9 h-9 flex items-center justify-center rounded-full border border-border hover:bg-secondary transition-colors">
+          <X size={18} />
         </button>
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <img src="/crown-gold.svg" alt="" className="w-24 h-24 mx-auto mb-6 drop-shadow-2xl" style={{ filter: "drop-shadow(0 0 30px rgba(255,215,0,0.6))" }} />
+          <img src="/crown-gold.svg" alt="" className="w-20 h-20 mx-auto mb-5" />
 
-          <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-2" style={{ background: "linear-gradient(135deg, #FFD700, #FFA500, #FFD700)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            Competition Ended
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-50 border border-yellow-200 text-yellow-700 text-[11px] font-semibold uppercase tracking-wider mb-3">
+            <Trophy size={12} weight="fill" /> Competition Ended
+          </div>
+
+          <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tighter text-foreground mb-2">
+            The champions have been crowned
           </h1>
-          <p className="text-white/50 text-lg mb-12">The champions have been crowned.</p>
+          <p className="text-muted-foreground mb-10">Congratulations to the winners.</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {winners.map((w, i) => (
               <Link key={i} to={`/p/${w.slug}`} className="group" onClick={() => setDismissed(true)}>
                 <div style={{
                   animation: `winner-float ${2.5 + i * 0.3}s ease-in-out infinite`,
                   animationDelay: `${i * 0.15}s`,
                 }}>
-                  <div className={`relative p-6 rounded-2xl border backdrop-blur-sm transition-all duration-500 group-hover:scale-105 ${
-                    i === 0 ? "bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20 hover:shadow-[0_0_40px_rgba(255,215,0,0.3)]" :
-                    i === 1 ? "bg-slate-400/10 border-slate-400/30 hover:bg-slate-400/20 hover:shadow-[0_0_30px_rgba(192,192,192,0.2)]" :
-                    "bg-amber-600/10 border-amber-600/30 hover:bg-amber-600/20 hover:shadow-[0_0_25px_rgba(205,127,50,0.2)]"
+                  <div className={`relative p-6 rounded-2xl border-2 transition-all duration-300 group-hover:shadow-lg ${
+                    i === 0 ? "border-yellow-400 bg-gradient-to-b from-yellow-50 to-white" :
+                    i === 1 ? "border-slate-300 bg-gradient-to-b from-slate-50 to-white" :
+                    "border-amber-500 bg-gradient-to-b from-amber-50 to-white"
                   }`}>
-                    <img src={crownSvgs[i]} alt="" className="w-16 h-16 mx-auto -mt-12 mb-4 drop-shadow-xl" />
-                    <div className="text-xs uppercase tracking-[0.2em] font-bold mb-2" style={{ color: i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : "#CD7F32" }}>
-                      {i === 0 ? "1st Place" : i === 1 ? "2nd Place" : "3rd Place"}
-                    </div>
-                    <h3 className="font-heading font-black text-xl text-white group-hover:text-yellow-400 transition-colors">{w.name}</h3>
-                    <p className="text-white/50 text-sm mt-1 line-clamp-2">{w.tagline}</p>
+                    <img src={crownSvgs[i]} alt="" className="w-14 h-14 mx-auto -mt-11 mb-3" />
+                    <span className={`text-[10px] uppercase tracking-[0.15em] font-bold px-2 py-0.5 rounded-full ${
+                      i === 0 ? "bg-yellow-100 text-yellow-700" : i === 1 ? "bg-slate-100 text-slate-600" : "bg-amber-100 text-amber-700"
+                    }`}>
+                      {i === 0 ? "1st" : i === 1 ? "2nd" : "3rd"} Place
+                    </span>
+                    <h3 className="font-heading font-black text-lg mt-2 text-foreground group-hover:text-primary transition-colors">{w.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{w.tagline}</p>
                     {w.maker && (
-                      <div className="mt-4 pt-4 border-t border-white/10">
-                        <p className="text-sm text-white/70 font-semibold">{w.maker.name}</p>
-                        <p className="text-xs text-white/40">@{w.maker.username}</p>
+                      <div className="mt-4 pt-4 border-t border-border/60">
+                        <p className="text-sm font-semibold">{w.maker.name}</p>
+                        <p className="text-xs text-muted-foreground">@{w.maker.username}</p>
                       </div>
                     )}
-                    <div className="flex justify-center gap-4 mt-3 text-xs text-white/50">
-                      <span>⬆ {w.upvotes_count || 0}</span>
-                      <span>👁 {w.views_count || 0}</span>
+                    <div className="flex justify-center gap-2 mt-3 text-xs font-medium">
+                      <span className="px-2.5 py-1 rounded-full bg-secondary/60">⬆ {w.upvotes_count || 0}</span>
+                      <span className="px-2.5 py-1 rounded-full bg-secondary/60 text-muted-foreground">👁 {w.views_count || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -114,9 +104,9 @@ export default function CountdownBanner() {
             ))}
           </div>
 
-          <div className="mt-10">
-            <Link to="/hall-of-fame" onClick={() => setDismissed(true)} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-sm transition-colors border border-white/20">
-              <Trophy size={16} /> View Hall of Fame
+          <div className="mt-8">
+            <Link to="/hall-of-fame" onClick={() => setDismissed(true)} className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
+              <Trophy size={14} /> View Hall of Fame
             </Link>
           </div>
         </div>

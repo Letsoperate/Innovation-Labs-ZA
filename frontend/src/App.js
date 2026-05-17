@@ -27,6 +27,7 @@ import FaqPage from "./pages/FaqPage";
 import RulesPage from "./pages/RulesPage";
 import ComingSoonPage from "./pages/ComingSoonPage";
 import AdminPage from "./pages/AdminPage";
+import BookmarksPage from "./pages/BookmarksPage";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
             <Route path="/platforms" element={<ComingSoonPage title="Platforms" description="Browse tools by platform — Web, API, CLI, and Mobile. Coming soon." />} />
             <Route path="/free-tools" element={<ComingSoonPage title="Free Tools" description="Curated free developer tools and utilities. Coming soon." />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/bookmarks" element={<BookmarksPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

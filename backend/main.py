@@ -337,6 +337,12 @@ async def toggle_bookmark(pid: str, u: dict = Depends(get_current_user)):
     if not p: raise HTTPException(404,"Project not found")
     return await cv_toggle_bookmark(str(p["_id"]),u["_id"])
 
+@api.get("/bookmarks")
+async def list_bookmarks(req: Request, u: dict = Depends(get_current_user)):
+    ps=await cv_list_projects(sort="recent",limit=200)
+    an=await annotate(ps,u["_id"])
+    return [p for p in an if p.get("has_bookmarked")]
+
 @api.get("/projects/{pid}/comments")
 async def get_comments(pid: str):
     p=await cv_get_project(pid)

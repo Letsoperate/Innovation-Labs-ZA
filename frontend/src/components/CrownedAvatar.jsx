@@ -4,9 +4,9 @@ export default function CrownedAvatar({ rank, avatarUrl, name, initials }) {
     return (
       <span className="relative inline-flex">
         {avatarUrl ? (
-          <img src={avatarUrl} alt={name} className="h-7 w-7 rounded-full ring-1 ring-border ring-offset-1 ring-offset-background object-cover" />
+          <img src={avatarUrl} alt={name} className="h-9 w-9 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background object-cover" />
         ) : (
-          <span className="h-7 w-7 rounded-full ring-1 ring-border ring-offset-1 ring-offset-background bg-foreground text-background font-semibold flex items-center justify-center text-[9px]">{initials}</span>
+          <span className="h-9 w-9 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background bg-foreground text-background font-semibold flex items-center justify-center text-xs">{initials}</span>
         )}
       </span>
     );
@@ -20,11 +20,11 @@ export default function CrownedAvatar({ rank, avatarUrl, name, initials }) {
   const c = colors[rank];
 
   return (
-    <span style={{ position: "relative", display: "inline-flex", width: "28px", height: "28px" }}>
+    <span style={{ position: "relative", display: "inline-flex", width: "36px", height: "36px" }}>
       <style>{`
         @keyframes pulse-ring-${rank} {
           0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.9; transform: scale(1.08); }
+          50% { opacity: 0.9; transform: scale(1.12); }
         }
         @keyframes crown-float-${rank} {
           0%   { transform: translateX(-50%) translateY(0px) rotate(-2deg); }
@@ -74,7 +74,7 @@ export default function CrownedAvatar({ rank, avatarUrl, name, initials }) {
         filter: `drop-shadow(0 4px 8px ${c.ring}80)`,
         pointerEvents: "none",
       }}>
-        <svg width="34" height="22" viewBox="0 0 68 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="44" height="28" viewBox="0 0 68 44" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M6 38 L10 16 L22 28 L34 6 L46 28 L58 16 L62 38 Z" fill={c.crownFill} stroke={c.crownStroke} strokeWidth="1.5" strokeLinejoin="round" />
           <rect x="4" y="36" width="60" height="7" rx="3" fill={c.crownStroke} />
           <circle cx="34" cy="39.5" r="3" fill="#E24B4A" />
@@ -103,9 +103,9 @@ export default function CrownedAvatar({ rank, avatarUrl, name, initials }) {
 
       {/* Avatar */}
       {avatarUrl ? (
-        <img src={avatarUrl} alt={name} className="h-7 w-7 rounded-full ring-1 ring-border ring-offset-1 ring-offset-background object-cover relative z-[1]" />
+        <img src={avatarUrl} alt={name} className="h-9 w-9 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background object-cover relative z-[1]" />
       ) : (
-        <span className="h-7 w-7 rounded-full ring-1 ring-border ring-offset-1 ring-offset-background bg-foreground text-background font-semibold flex items-center justify-center text-[9px] relative z-[1]">{initials}</span>
+        <span className="h-9 w-9 rounded-full ring-1 ring-border ring-offset-2 ring-offset-background bg-foreground text-background font-semibold flex items-center justify-center text-xs relative z-[1]">{initials}</span>
       )}
     </span>
   );
