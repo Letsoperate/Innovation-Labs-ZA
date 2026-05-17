@@ -1,4 +1,4 @@
-import os, uuid, json, hashlib, logging, httpx, jwt, time, urllib.parse
+import os, uuid, json, hashlib, logging, httpx, jwt, time, urllib.parse, base64
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
@@ -485,12 +485,15 @@ async def generate_video(url: str):
 
 @api.post("/upload")
 async def upload_file(file: UploadFile = File(...), u: dict = Depends(get_current_user)):
-    ext = Path(file.filename).suffix.lstrip(".") if file.filename else "bin"
+    content = await file.read()
+    ext = Path(file.filename).suffix.lstrip(".").lower() if file.filename else "png"
     safe_name = f"{uuid.uuid4().hex}.{ext}"
     file_path = UPLOAD_DIR / safe_name
-    content = await file.read()
     file_path.write_bytes(content)
-    return {"url": f"/api/files/local/{safe_name}", "filename": safe_name}
+    b64 = base64.b64encode(content).decode("utf-8")
+    mt = file.content_type or mimetypes.guess_type(file.filename)[0] or "image/png"
+    data_url = f"data:{mt};base64,{b64}"
+    return {"url": f"/api/files/local/{safe_name}", "filename": safe_name, "data_url": data_url}
 
 @api.get("/files/local/{name}")
 async def get_file(name: str):

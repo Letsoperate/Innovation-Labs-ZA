@@ -60,7 +60,7 @@ export default function SubmitProjectPage() {
       const fd = new FormData();
       fd.append("file", file);
       const { data } = await api.post("/upload", fd);
-      update("screenshots", [...(form.screenshots || []), data.url]);
+      update("screenshots", [...(form.screenshots || []), data.data_url || data.url]);
       toast.success("Image uploaded");
     } catch (err) {
       toast.error(formatApiErrorDetail(err.response?.data?.detail));
@@ -77,7 +77,7 @@ export default function SubmitProjectPage() {
       const fd = new FormData();
       fd.append("file", file);
       const { data } = await api.post("/upload", fd);
-      update("cover_image_url", data.url);
+      update("cover_image_url", data.data_url || data.url);
       toast.success("Cover image uploaded");
     } catch (err) {
       toast.error(formatApiErrorDetail(err.response?.data?.detail));
@@ -182,7 +182,7 @@ export default function SubmitProjectPage() {
                   <div className="space-y-3">
                     {form.cover_image_url ? (
                       <div className="relative inline-block">
-                        <img src={form.cover_image_url.startsWith("/api") ? process.env.REACT_APP_BACKEND_URL + form.cover_image_url : form.cover_image_url} alt="Cover" className="max-h-48 mx-auto border border-border rounded-lg" />
+                        <img src={form.cover_image_url} alt="Cover" className="max-h-48 mx-auto border border-border rounded-lg" />
                         <button type="button" onClick={() => update("cover_image_url", "")} className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground flex items-center justify-center rounded-full text-xs"><X size={10} weight="bold" /></button>
                       </div>
                     ) : (
@@ -203,7 +203,7 @@ export default function SubmitProjectPage() {
                   <div className="space-y-3">
                     {(form.screenshots || []).map((s, i) => (
                       <div key={i} className="relative inline-block">
-                        <img src={s.startsWith("/api") ? process.env.REACT_APP_BACKEND_URL + s : s} alt="" className="max-h-48 mx-auto border border-border" />
+                        <img src={s} alt="" className="max-h-48 mx-auto border border-border" />
                         <button type="button" onClick={() => update("screenshots", form.screenshots.filter((_, j) => j !== i))} className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground flex items-center justify-center rounded-full text-xs"><X size={10} weight="bold" /></button>
                       </div>
                     ))}
