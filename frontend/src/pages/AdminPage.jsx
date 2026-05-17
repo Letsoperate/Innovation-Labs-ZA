@@ -12,6 +12,8 @@ export default function AdminPage() {
   const { user, checked } = useAuth();
   const [stats, setStats] = useState({ projects: 0, makers: 0, upvotes: 0, comments: 0 });
   const [banners, setBanners] = useState([]);
+  const [newBanner, setNewBanner] = useState({ image_url: "", caption: "", link_url: "", position: "top" });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!checked || !user || user.role !== "admin") return;
@@ -46,11 +48,6 @@ export default function AdminPage() {
       toast.success("Banner deleted");
     } catch { toast.error("Failed to delete banner"); }
   };
-
-  if (!checked) {
-    return <div className="pt-28 pb-20 text-center text-muted-foreground">Loading...</div>;
-  }
-  if (!user || user.role !== "admin") return null;
 
   return (
     <div className="pt-28 pb-20">
